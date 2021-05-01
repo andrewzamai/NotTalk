@@ -1,4 +1,8 @@
-<?xml version="1.0" encoding="utf-8"?><!-- Adding the same root's ID for view binding as other layout configurations -->
+<?xml version="1.0" encoding="utf-8"?>
+
+<!--Fragment List Layout, contains a Recycler View-->
+
+<!-- Adding the same root's ID for view binding as other layout configurations -->
 <androidx.constraintlayout.widget.ConstraintLayout xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:app="http://schemas.android.com/apk/res-auto"
     xmlns:tools="http://schemas.android.com/tools"
@@ -16,4 +20,5 @@
         app:layoutManager="LinearLayoutManager"
         tools:context="it.unipd.dei.esp2021.nottalk.ItemDetailHostActivity"
         tools:listitem="@layout/item_list_content" />
+
 </androidx.constraintlayout.widget.ConstraintLayout>

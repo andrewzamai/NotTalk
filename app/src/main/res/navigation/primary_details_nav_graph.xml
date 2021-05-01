@@ -13,6 +13,7 @@
             android:id="@+id/show_item_detail"
             app:destination="@id/item_detail_fragment" />
     </fragment>
+
     <fragment
         android:id="@+id/item_detail_fragment"
         android:name="it.unipd.dei.esp2021.nottalk.ItemDetailFragment"
@@ -23,4 +24,5 @@
             android:defaultValue=""
             app:argType="string" />
     </fragment>
+
 </navigation>

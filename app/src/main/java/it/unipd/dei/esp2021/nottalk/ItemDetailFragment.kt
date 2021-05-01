@@ -11,30 +11,34 @@ import it.unipd.dei.esp2021.nottalk.placeholder.PlaceholderContent
 import it.unipd.dei.esp2021.nottalk.databinding.FragmentItemDetailBinding
 
 /**
- * A fragment representing a single Item detail screen.
+ * A fragment representing a single chat details: list of messages.
  * This fragment is either contained in a [ItemListFragment]
  * in two-pane mode (on larger screen devices) or self-contained
  * on handsets.
  */
 class ItemDetailFragment : Fragment() {
 
+    private var _binding: FragmentItemDetailBinding? = null
+
     /**
      * The placeholder content this fragment is presenting.
+     * @TODO: To be replaced
      */
     private var item: PlaceholderContent.PlaceholderItem? = null
 
     lateinit var itemDetailTextView: TextView
 
-    private var _binding: FragmentItemDetailBinding? = null
 
-    // This property is only valid between onCreateView and
-    // onDestroyView.
+    // This property is only valid between onCreateView and onDestroyView.
     private val binding get() = _binding!!
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
 
+        // returns the arguments supplied when the fragment was instantiated, if any
+        // let notation allows to invoke one or more functions on results of call chains
         arguments?.let {
+            //checks if the bundle passed in navigate contains ARG_ITEM_ID key (this fragment constant)
             if (it.containsKey(ARG_ITEM_ID)) {
                 // Load the placeholder content specified by the fragment
                 // arguments. In a real-world scenario, use a Loader
@@ -44,10 +48,9 @@ class ItemDetailFragment : Fragment() {
         }
     }
 
-    override fun onCreateView(
-        inflater: LayoutInflater, container: ViewGroup?,
-        savedInstanceState: Bundle?
-    ): View? {
+    override fun onCreateView(inflater: LayoutInflater,
+                              container: ViewGroup?,
+                              savedInstanceState: Bundle?): View? {
 
         _binding = FragmentItemDetailBinding.inflate(inflater, container, false)
         val rootView = binding.root
@@ -63,16 +66,17 @@ class ItemDetailFragment : Fragment() {
         return rootView
     }
 
-    companion object {
-        /**
-         * The fragment argument representing the item ID that this fragment
-         * represents.
-         */
-        const val ARG_ITEM_ID = "item_id"
-    }
 
     override fun onDestroyView() {
         super.onDestroyView()
         _binding = null
+    }
+
+
+    companion object {
+        /**
+         * The fragment argument representing the item ID that this fragment represents.
+         */
+        const val ARG_ITEM_ID = "item_id"
     }
 }

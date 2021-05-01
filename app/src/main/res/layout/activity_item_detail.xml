@@ -6,6 +6,8 @@
     android:layout_width="match_parent"
     android:layout_height="match_parent">
 
+    <!--Declaring a Fragment Container View in ItemDetailHostActivity layout: an empty container where destination fragments are swapped in and out as a user navigates through the app
+        setted as DefaultNavHost, using specified navGraph path, tools:layout to show item_detail_fragment in app developing as placeholder-->
     <androidx.fragment.app.FragmentContainerView
         android:id="@+id/nav_host_fragment_item_detail"
         android:name="androidx.navigation.fragment.NavHostFragment"
