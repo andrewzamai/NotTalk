@@ -132,7 +132,7 @@ class ServerAdapter {
         throw Exception(error)
     }
 
-    fun checkMsg(username: String, uuid: String): List<Message>{
+    fun checkMsg(username: String, uuid: String): Pair<List<Message>,List<Int>>{
         val json = JSONObject()
         json.put("username", username)
         json.put("uuid", uuid)
@@ -141,18 +141,20 @@ class ServerAdapter {
         val status = jsonResponse.getString("status")
         if(status.equals("ok")){
             val list = mutableListOf<Message>()
+            val num = mutableListOf<Int>()
             val size = jsonResponse.getInt("length")
-            if(size==0) return list
+            if(size==0) return Pair(list,num)
             val messages = jsonResponse.getJSONArray("messages")
-            for(i in 0..size){
+            for(i in 0 until size){
                 val jsonmsg = messages.getJSONObject(i)
                 val msg = Message(username=jsonmsg.getString("fromuser"),
-                    date= jsonmsg.getString("date"),
-                    type=jsonmsg.getString("type"),
-                    text=jsonmsg.getString("content"))
+                        date= jsonmsg.getString("date"),
+                        type=jsonmsg.getString("type"),
+                        text=jsonmsg.getString("content"))
                 list.add(msg)
+                num.add(jsonmsg.getInt("id"))
             }
-            return list
+            return Pair(list,num)
         }
         throw Exception(jsonResponse.getString("error"))
     }

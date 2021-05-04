@@ -35,9 +35,11 @@ class SyncService : Service() {
 
                 val sa = ServerAdapter()
                 val response = sa.checkMsg(username!!,uuid!!)
-                val cd = ChatDatabase.getDatabase(applicationContext)
-                cd.messageDao().insertAll(response)
-
+                if(response.first.isNotEmpty()) {
+                    val cd = ChatDatabase.getDatabase(applicationContext)
+                    cd.messageDao().insertAll(response.first)
+                    sa.deleteMsg(username!!, uuid!!, response.second)
+                }
             } finally {
                 //STUB
             }
