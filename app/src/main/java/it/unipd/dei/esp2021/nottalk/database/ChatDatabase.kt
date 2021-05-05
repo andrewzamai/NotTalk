@@ -15,6 +15,7 @@ abstract class ChatDatabase : RoomDatabase() {
         @Volatile
         private var INSTANCE: ChatDatabase? = null
 
+        // TODO: delete getDataBase function an retrieve a ChatDatabase instance via NotTalkRepository get function
         fun getDatabase(context: Context): ChatDatabase {
             // if the INSTANCE is not null, then return it,
             // if it is, then create the database

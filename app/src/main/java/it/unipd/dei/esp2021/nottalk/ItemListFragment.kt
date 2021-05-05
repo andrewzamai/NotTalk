@@ -1,7 +1,9 @@
 package it.unipd.dei.esp2021.nottalk
 
+import android.content.Context
 import android.os.Build
 import android.os.Bundle
+import android.telecom.Call
 import android.view.KeyEvent
 import android.view.LayoutInflater
 import android.view.View
@@ -10,12 +12,12 @@ import android.widget.TextView
 import android.widget.Toast
 import androidx.core.view.ViewCompat
 import androidx.fragment.app.Fragment
+import androidx.lifecycle.Observer
 import androidx.lifecycle.ViewModelProvider
 import androidx.navigation.findNavController
 import androidx.recyclerview.widget.LinearLayoutManager
 import androidx.recyclerview.widget.RecyclerView
 import it.unipd.dei.esp2021.nottalk.database.User
-import it.unipd.dei.esp2021.nottalk.placeholder.PlaceholderContent;
 import it.unipd.dei.esp2021.nottalk.databinding.FragmentItemListBinding
 import it.unipd.dei.esp2021.nottalk.databinding.ItemListContentBinding
 
@@ -48,6 +50,10 @@ class ItemListFragment : Fragment() {
         ViewModelProvider(this).get(UserListViewModel::class.java)
     }
 
+    // right fragment in Tablet layout configuration, if null we are on a hand-set device
+    private var itemDetailFragmentContainer: View? = null
+
+
 // Overriding fragment lifecycle methods
 
     override fun onCreateView(inflater: LayoutInflater,
@@ -57,7 +63,16 @@ class ItemListFragment : Fragment() {
         _binding = FragmentItemListBinding.inflate(inflater, container, false)
         usersRecyclerView = binding.itemList // gets a reference to RecyclerView widget declared in fragment_item_list.xml
         usersRecyclerView.layoutManager = LinearLayoutManager(context) // assign a LayoutManager
-        usersRecyclerView.adapter = adapter // pass an adapter (intitially emptyList)
+        //usersRecyclerView.adapter = adapter // pass an adapter (initially emptyList)
+
+        // insert some users in the database
+    /*
+        userListViewModel.insertUser(User("Andrew"))
+        userListViewModel.insertUser(User("Filippo"))
+        userListViewModel.insertUser(User("Alessandro"))
+        userListViewModel.insertUser(User("Daniele"))
+    */
+
         return binding.root
     }
 
@@ -72,12 +87,13 @@ class ItemListFragment : Fragment() {
          * Being the OS to choose which layout to use based on device size, if the findViewById fails (return null) means the app is running on a handset device.
          * (See null check in onClickListener below)
         */
-        val itemDetailFragmentContainer: View? = view.findViewById(R.id.item_detail_nav_container)
+        itemDetailFragmentContainer = view.findViewById(R.id.item_detail_nav_container)
 
         /**
          * Click Listener to trigger navigation based on if you have
          * a single pane layout or two pane layout
          */
+        /*
         val onClickListener = View.OnClickListener { itemView ->
             // item selected is passed to the destination fragment using a Bundle object:
             // ARG_ITEM_ID is a constant in companion object in ItemDetailFragment
@@ -93,15 +109,24 @@ class ItemListFragment : Fragment() {
             */
             // if not null (side by side fragments) retrieves NavController associated with ItemDetailFragment (NavController in HostActivity) and navigates to fragment_item_detail (sub_nav_graph.xml)
             if (itemDetailFragmentContainer != null) {
-                itemDetailFragmentContainer.findNavController()
+                itemDetailFragmentContainer!!.findNavController()
                     .navigate(R.id.fragment_item_detail, Bundle())
             } else {
                 // show_item_detail is the action ID that navigates from list fragment to detail fragment
                 itemView.findNavController().navigate(R.id.show_item_detail, Bundle())
             }
         }
+        */
 
-        updateUI(listOf(User("Andrew"), User("Filippo"), User("Alessandro")))
+        // tells the UserListViewModel to observe for changes in userListLiveData, refresh the recycler view if changed
+        userListViewModel.userListLiveData.observe(
+            viewLifecycleOwner,
+            Observer { users ->
+                users?.let {
+                    updateUI(users)
+                }
+            }
+        )
 
     }
 
@@ -111,10 +136,32 @@ class ItemListFragment : Fragment() {
         _binding = null
     }
 
+
     // inner classes UserHolder and UserAdapter for UserRecyclerView
 
-    private inner class UserHolder(binding: ItemListContentBinding) : RecyclerView.ViewHolder(binding.root){
-        val username: TextView = binding.idUser //stores reference to textview field
+    private inner class UserHolder(binding: ItemListContentBinding) : RecyclerView.ViewHolder(binding.root), View.OnClickListener {
+        private lateinit var user: User // stores a reference to the User object
+        private val username: TextView = binding.idUser //stores reference to textview field
+
+        init{
+            itemView.setOnClickListener(this)
+        }
+
+        fun bind(user: User){
+            this.user = user
+            username.text = this.user.username
+        }
+
+        override fun onClick(v: View?) {
+            Toast.makeText(context, "${user.username} pressed", Toast.LENGTH_SHORT).show()
+
+            if (itemDetailFragmentContainer != null) {
+                itemDetailFragmentContainer!!.findNavController().navigate(R.id.fragment_item_detail, Bundle())
+            } else {
+                // show_item_detail is the action ID that navigates from list fragment to detail fragment
+                itemView.findNavController().navigate(R.id.show_item_detail, Bundle())
+            }
+        }
     }
 
     // takes a list of users and populates the recycler
@@ -127,12 +174,13 @@ class ItemListFragment : Fragment() {
 
         override fun onBindViewHolder(holder: UserHolder, position: Int) {
             val item = users[position]
-            holder.username.text = item.username
+            holder.bind(item)
         }
 
         override fun getItemCount(): Int {
             return users.size
         }
+
     }
 
     // called in OnViewCreated to refresh the recycler list

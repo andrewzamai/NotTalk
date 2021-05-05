@@ -1,13 +1,13 @@
 package it.unipd.dei.esp2021.nottalk
 
 import android.os.Bundle
+import android.util.Log
 import androidx.fragment.app.Fragment
 import com.google.android.material.appbar.CollapsingToolbarLayout
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
 import android.widget.TextView
-import it.unipd.dei.esp2021.nottalk.placeholder.PlaceholderContent
 import it.unipd.dei.esp2021.nottalk.databinding.FragmentItemDetailBinding
 
 /**
@@ -24,7 +24,7 @@ class ItemDetailFragment : Fragment() {
      * The placeholder content this fragment is presenting.
      * @TODO: To be replaced
      */
-    private var item: PlaceholderContent.PlaceholderItem? = null
+    //private var item: PlaceholderContent.PlaceholderItem? = null
 
     lateinit var itemDetailTextView: TextView
 
@@ -43,7 +43,7 @@ class ItemDetailFragment : Fragment() {
                 // Load the placeholder content specified by the fragment
                 // arguments. In a real-world scenario, use a Loader
                 // to load content from a content provider.
-                item = PlaceholderContent.ITEM_MAP[it.getString(ARG_ITEM_ID)]
+                //item = PlaceholderContent.ITEM_MAP[it.getString(ARG_ITEM_ID)]
             }
         }
     }
@@ -55,13 +55,15 @@ class ItemDetailFragment : Fragment() {
         _binding = FragmentItemDetailBinding.inflate(inflater, container, false)
         val rootView = binding.root
 
-        binding.toolbarLayout?.title = item?.content
+        //binding.toolbarLayout?.title = item?.content
 
         itemDetailTextView = binding.itemDetail
         // Show the placeholder content as text in a TextView.
-        item?.let {
-            itemDetailTextView.text = it.details
-        }
+        //item?.let {
+            //itemDetailTextView.text = it.details
+        //}
+
+        Log.d("ItemDetailFragment", "ItemDetailFragment Crated")
 
         return rootView
     }
