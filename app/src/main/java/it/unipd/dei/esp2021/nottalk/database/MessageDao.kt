@@ -10,8 +10,14 @@ interface MessageDao {
     @get:Query("SELECT * FROM message")
     val all: List<Message>
 
-    @Query("SELECT * FROM message WHERE username = :username")
-    fun findByUsername(username: String): List<Message>
+    @Query("SELECT * FROM message WHERE toUser = :toUser and fromUser = :username")
+    fun findSentTo(toUser: String,username: String): List<Message>
+
+    @Query("SELECT * FROM message WHERE toUser = :username and fromUser = :fromUser")
+    fun findRecivedFrom(fromUser: String,username: String): List<Message>
+
+    @Query("SELECT * FROM message WHERE (toUser = :user1 and fromUser = :user2) or (toUser = :user2 and fromUser = :user1)")
+    fun findConvo(user1: String,user2: String)
 
     @Query("SELECT * FROM message WHERE id IN (:messageIds)")
     fun findAllByIds(messageIds: Array<Int>): List<Message>

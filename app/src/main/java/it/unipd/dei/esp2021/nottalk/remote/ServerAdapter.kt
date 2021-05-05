@@ -147,7 +147,9 @@ class ServerAdapter {
             val messages = jsonResponse.getJSONArray("messages")
             for(i in 0 until size){
                 val jsonmsg = messages.getJSONObject(i)
-                val msg = Message(username=jsonmsg.getString("fromuser"),
+                val msg = Message(
+                        toUser=username,
+                        fromUser=jsonmsg.getString("fromuser"),
                         date= jsonmsg.getString("date"),
                         type=jsonmsg.getString("type"),
                         text=jsonmsg.getString("content"))

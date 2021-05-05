@@ -5,7 +5,8 @@ import androidx.room.Entity
 import androidx.room.PrimaryKey
 
 @Entity(tableName = "message")
-data class Message(@ColumnInfo(name = "username") val username: String,
+data class Message(@ColumnInfo(name = "touser") val toUser: String,
+                   @ColumnInfo(name = "fromuser") val fromUser: String,
                    @ColumnInfo(name = "date") val date: String,
                    @ColumnInfo(name = "type") val type: String,
                    @ColumnInfo(name = "text") val text: String){
