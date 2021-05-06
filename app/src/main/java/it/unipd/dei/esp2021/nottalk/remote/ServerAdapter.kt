@@ -87,7 +87,7 @@ class ServerAdapter {
         throw Exception(error)
     }
 
-    fun sendTextMsg(username: String, uuid: String, toUser: String, date: String, text: String): String{
+    fun sendTextMsg(username: String, uuid: String, toUser: String, date: Long, text: String): String{
         val json = JSONObject()
         json.put("username", username)
         json.put("uuid", uuid)
@@ -108,7 +108,7 @@ class ServerAdapter {
         throw Exception(error)
     }
 
-    fun sendFileMsg(username: String, uuid: String, toUser: String, date: String,
+    fun sendFileMsg(username: String, uuid: String, toUser: String, date: Long,
                     content: String, mimeType: String, fileName: String): String{
         val json = JSONObject()
         json.put("username", username)
@@ -150,7 +150,7 @@ class ServerAdapter {
                 val msg = Message(
                         toUser=username,
                         fromUser=jsonmsg.getString("fromuser"),
-                        date= jsonmsg.getString("date"),
+                        date= jsonmsg.getLong("date"),
                         type=jsonmsg.getString("type"),
                         text=jsonmsg.getString("content"))
                 list.add(msg)
