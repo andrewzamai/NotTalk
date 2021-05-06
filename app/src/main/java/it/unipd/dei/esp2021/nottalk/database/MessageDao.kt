@@ -17,7 +17,7 @@ interface MessageDao {
     fun findRecivedFrom(fromUser: String,username: String): List<Message>
 
     @Query("SELECT * FROM message WHERE (toUser = :user1 and fromUser = :user2) or (toUser = :user2 and fromUser = :user1)")
-    fun findConvo(user1: String,user2: String)
+    fun findConvo(user1: String,user2: String): List<Message>
 
     @Query("SELECT * FROM message WHERE id IN (:messageIds)")
     fun findAllByIds(messageIds: Array<Int>): List<Message>

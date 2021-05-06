@@ -4,6 +4,8 @@ import android.content.Context
 import androidx.room.Database
 import androidx.room.Room
 import androidx.room.RoomDatabase
+import androidx.sqlite.db.SupportSQLiteDatabase
+import java.util.concurrent.Executors
 
 @Database(entities = [(User::class), (Message::class)], version = 1, exportSchema = false)
 abstract class ChatDatabase : RoomDatabase() {
@@ -24,12 +26,30 @@ abstract class ChatDatabase : RoomDatabase() {
                         context.applicationContext,
                         ChatDatabase::class.java,
                         "chat_database"
-                ).build()
+                )
+                    .addCallback(ChatDatabaseCallback())
+                    .build()
                 INSTANCE = instance
                 // return instance
                 instance
             }
         }
+
+        // populate database (comment out if doesn't work)
+
+        private class ChatDatabaseCallback(): Callback(){
+            override fun onOpen(db: SupportSQLiteDatabase) {
+                super.onOpen(db)
+                Thread{
+                    val messageDao = INSTANCE?.messageDao()
+                    val userDao = INSTANCE?.userDao()
+                    userDao?.insert(User("Tizio"))
+                    messageDao?.insert(Message("Tizio", "Caio", 12345678, "text", "ciao"))
+                }.run()
+            }
+        }
+
+
 
         fun destroyInstance() {
             INSTANCE = null
