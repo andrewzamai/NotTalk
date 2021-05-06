@@ -40,12 +40,12 @@ abstract class ChatDatabase : RoomDatabase() {
         private class ChatDatabaseCallback(): Callback(){
             override fun onCreate(db: SupportSQLiteDatabase) {
                 super.onCreate(db)
-                Thread{
+                Thread(Runnable{
                     val messageDao = INSTANCE?.messageDao()
                     val userDao = INSTANCE?.userDao()
                     userDao?.insert(User("Tizio"))
                     messageDao?.insert(Message("Tizio", "Caio", 12345678, "text", "ciao"))
-                }.run()
+                }).start()
             }
         }
 
