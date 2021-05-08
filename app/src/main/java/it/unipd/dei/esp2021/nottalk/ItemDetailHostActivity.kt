@@ -1,6 +1,9 @@
 package it.unipd.dei.esp2021.nottalk
 
+import android.content.Context
+import android.content.SharedPreferences
 import android.os.Bundle
+import android.preference.PreferenceManager
 import android.widget.Toast
 import androidx.appcompat.app.AppCompatActivity
 import androidx.lifecycle.ViewModelProvider
@@ -20,6 +23,10 @@ class ItemDetailHostActivity : AppCompatActivity() {
 
     private lateinit var appBarConfiguration: AppBarConfiguration
 
+    private lateinit var sharedPref: SharedPreferences
+
+    public lateinit var thisUser: String //TODO: to change in private and use getter in onCreateView ItemDetailFragment
+
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
 
@@ -28,6 +35,16 @@ class ItemDetailHostActivity : AppCompatActivity() {
         val binding = ActivityItemDetailBinding.inflate(layoutInflater) //ActivityItemDetailBinding is the binding class generated for activity_item_detail.xml layout, .inflate(layoutInflater) does the inflate as setContentView(R.layout.activity_item_detail)
         val view = binding.root //get a reference to the root view
         setContentView(view)  //and make it active on the screen
+
+        sharedPref = getPreferences(Context.MODE_PRIVATE)
+        with (sharedPref.edit()){
+            if(sharedPref.getString("thisUsername", "absent") == "absent"){
+                putString("thisUsername", "admin")
+                apply()
+            }
+            thisUser = sharedPref.getString("thisUsername", "admin")!!
+
+        }
 
         // initialize a navigation host fragment by retrieving Fragment Container View ID declared in hosting activity xml file activity_item_detail.xml
         val navHostFragment =

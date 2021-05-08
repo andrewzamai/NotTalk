@@ -63,15 +63,15 @@ class ItemListFragment : Fragment() {
         _binding = FragmentItemListBinding.inflate(inflater, container, false)
         usersRecyclerView = binding.itemList // gets a reference to RecyclerView widget declared in fragment_item_list.xml
         usersRecyclerView.layoutManager = LinearLayoutManager(context) // assign a LayoutManager
-        //usersRecyclerView.adapter = adapter // pass an adapter (initially emptyList)
+        usersRecyclerView.adapter = adapter // pass an adapter (initially emptyList)
 
         // insert some users in the database
-    /*
-        userListViewModel.insertUser(User("Andrew"))
-        userListViewModel.insertUser(User("Filippo"))
-        userListViewModel.insertUser(User("Alessandro"))
-        userListViewModel.insertUser(User("Daniele"))
-    */
+        if(userListViewModel.userListLiveData.value.isNullOrEmpty()) {
+            //userListViewModel.insertUser(User("Andrew"))
+            //userListViewModel.insertUser(User("Filippo"))
+            //userListViewModel.insertUser(User("Alessandro"))
+            //userListViewModel.insertUser(User("Daniele"))
+        }
 
         return binding.root
     }
@@ -155,11 +155,17 @@ class ItemListFragment : Fragment() {
         override fun onClick(v: View?) {
             Toast.makeText(context, "${user.username} pressed", Toast.LENGTH_SHORT).show()
 
+            val bundle = Bundle()
+            bundle.putString(
+                ItemDetailFragment.ARG_ITEM_ID,
+                user.username
+            )
+
             if (itemDetailFragmentContainer != null) {
-                itemDetailFragmentContainer!!.findNavController().navigate(R.id.fragment_item_detail, Bundle())
+                itemDetailFragmentContainer!!.findNavController().navigate(R.id.fragment_item_detail, bundle)
             } else {
                 // show_item_detail is the action ID that navigates from list fragment to detail fragment
-                itemView.findNavController().navigate(R.id.show_item_detail, Bundle())
+                itemView.findNavController().navigate(R.id.show_item_detail, bundle)
             }
         }
     }

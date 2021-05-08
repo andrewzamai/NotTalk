@@ -4,6 +4,7 @@ import android.content.Context
 import androidx.lifecycle.LiveData
 import androidx.room.Room
 import it.unipd.dei.esp2021.nottalk.database.ChatDatabase
+import it.unipd.dei.esp2021.nottalk.database.Message
 import it.unipd.dei.esp2021.nottalk.database.User
 import java.lang.IllegalStateException
 import java.util.concurrent.Executors
@@ -46,7 +47,7 @@ class NotTalkRepository private constructor(context: Context){
     }
 
     // MessageDao adapter functions
-
+    fun getConvo(thisUser: String, otherUser: String): LiveData<List<Message>> = messageDao.findConvo(thisUser, otherUser)
 
 
 

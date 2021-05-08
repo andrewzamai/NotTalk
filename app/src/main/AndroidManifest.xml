@@ -12,6 +12,7 @@
         android:supportsRtl="false"
         android:theme="@style/Theme.NotTalk">
 
+
         <activity
             android:name=".ItemDetailHostActivity"
             android:label="@string/app_name">
