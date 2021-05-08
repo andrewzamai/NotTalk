@@ -8,16 +8,16 @@ import androidx.room.Query
 
 @Dao
 interface MessageDao {
-    @get:Query("SELECT * FROM message")
+    @get:Query("SELECT * FROM message ORDER BY date")
     val all: LiveData<List<Message>>
 
-    @Query("SELECT * FROM message WHERE toUser = :toUser and fromUser = :username")
+    @Query("SELECT * FROM message WHERE toUser = :toUser and fromUser = :username ORDER BY date")
     fun findSentTo(toUser: String,username: String): LiveData<List<Message>>
 
-    @Query("SELECT * FROM message WHERE toUser = :username and fromUser = :fromUser")
+    @Query("SELECT * FROM message WHERE toUser = :username and fromUser = :fromUser ORDER BY date")
     fun findRecivedFrom(fromUser: String,username: String): LiveData<List<Message>>
 
-    @Query("SELECT * FROM message WHERE (toUser = :user1 and fromUser = :user2) or (toUser = :user2 and fromUser = :user1)")
+    @Query("SELECT * FROM message WHERE (toUser = :user1 and fromUser = :user2) or (toUser = :user2 and fromUser = :user1) ORDER BY date")
     fun findConvo(user1: String, user2: String): LiveData<List<Message>>
 
     @Query("SELECT * FROM message WHERE id IN (:messageIds)")

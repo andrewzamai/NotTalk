@@ -45,7 +45,7 @@ class ItemListFragment : Fragment() {
     // This property is only valid between onCreateView and onDestroyView.
     private val binding get() = _binding!!
 
-    // Lazy initizialization of a UserListViewModel instance
+    // Lazy initialization of a UserListViewModel instance
     private val userListViewModel: UserListViewModel by lazy {
         ViewModelProvider(this).get(UserListViewModel::class.java)
     }
@@ -66,12 +66,12 @@ class ItemListFragment : Fragment() {
         usersRecyclerView.adapter = adapter // pass an adapter (initially emptyList)
 
         // insert some users in the database
-        if(userListViewModel.userListLiveData.value.isNullOrEmpty()) {
+        //if(userListViewModel.userListLiveData.value.isNullOrEmpty()) {
             //userListViewModel.insertUser(User("Andrew"))
             //userListViewModel.insertUser(User("Filippo"))
             //userListViewModel.insertUser(User("Alessandro"))
             //userListViewModel.insertUser(User("Daniele"))
-        }
+        //}
 
         return binding.root
     }
@@ -153,7 +153,7 @@ class ItemListFragment : Fragment() {
         }
 
         override fun onClick(v: View?) {
-            Toast.makeText(context, "${user.username} pressed", Toast.LENGTH_SHORT).show()
+            Toast.makeText(context, "${user.username} pressed", Toast.LENGTH_SHORT).show() //TODO: eliminate toast
 
             val bundle = Bundle()
             bundle.putString(

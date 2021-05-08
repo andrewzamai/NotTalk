@@ -25,7 +25,7 @@ class ItemDetailHostActivity : AppCompatActivity() {
 
     private lateinit var sharedPref: SharedPreferences
 
-    public lateinit var thisUser: String //TODO: to change in private and use getter in onCreateView ItemDetailFragment
+    private lateinit var thisUser: String
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -36,7 +36,7 @@ class ItemDetailHostActivity : AppCompatActivity() {
         val view = binding.root //get a reference to the root view
         setContentView(view)  //and make it active on the screen
 
-        sharedPref = getPreferences(Context.MODE_PRIVATE)
+        sharedPref = getSharedPreferences("notTalkPref", MODE_PRIVATE)
         with (sharedPref.edit()){
             if(sharedPref.getString("thisUsername", "absent") == "absent"){
                 putString("thisUsername", "admin")

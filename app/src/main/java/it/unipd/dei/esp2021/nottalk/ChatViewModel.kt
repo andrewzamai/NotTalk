@@ -15,6 +15,7 @@ class ChatViewModel(thisUser: String, otherUser: String) : ViewModel() {
 
     init{
         Log.d("ChatViewModel", "ChatViewModel instantiated with thisUser=${thisUser} and otherUser=${otherUser}")
+
     }
 
 
