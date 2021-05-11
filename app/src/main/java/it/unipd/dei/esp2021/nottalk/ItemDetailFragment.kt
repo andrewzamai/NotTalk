@@ -1,8 +1,11 @@
 package it.unipd.dei.esp2021.nottalk
 
+import android.app.ActionBar
+import android.app.ActionBar.DISPLAY_SHOW_TITLE
 import android.app.Activity
 import android.content.Context
 import android.content.Context.MODE_PRIVATE
+import android.content.res.Resources
 import android.os.Bundle
 import android.util.Log
 import androidx.fragment.app.Fragment
@@ -24,6 +27,8 @@ import it.unipd.dei.esp2021.nottalk.database.User
 import it.unipd.dei.esp2021.nottalk.databinding.FragmentItemDetailBinding
 import it.unipd.dei.esp2021.nottalk.databinding.ItemChatContentBinding
 import it.unipd.dei.esp2021.nottalk.databinding.ItemListContentBinding
+import java.lang.String.format
+import java.text.DateFormat
 import java.util.*
 
 /**
@@ -47,13 +52,14 @@ class ItemDetailFragment : Fragment() {
     // reference to adapter, initially emptyList() then populated in OnViewCreated
     private var adapter: ItemDetailFragment.ChatAdapter? = ChatAdapter(emptyList())
 
-    // Lazy initialization of a ChatViewModel instance, uses a ViewModelFactory
+    // Lazy initialization of a ChatViewModel instance, uses a ViewModelFactory to retrieve the correct ViewModel instance within ViewModelProvider
     private val chatViewModel: ChatViewModel by lazy {
         ViewModelProvider(this, ChatViewModelFactory(thisUsername, otherUsername)).get(ChatViewModel::class.java)
     }
 
     // This property is only valid between onCreateView and onDestroyView.
     private val binding get() = _binding!!
+
 
     override fun onAttach(context: Context) {
         super.onAttach(context)
@@ -65,21 +71,16 @@ class ItemDetailFragment : Fragment() {
         super.onCreate(savedInstanceState)
 
         // returns the arguments supplied when the fragment was instantiated, if any
-        // let notation allows to invoke one or more functions on results of call chains
         arguments?.let {
             //checks if the bundle passed in navigate contains ARG_ITEM_ID key (this fragment constant)
             if (it.containsKey(ARG_ITEM_ID)) {
-                // Load the placeholder content specified by the fragment
-                // arguments.
+                // Load the username content specified by the fragment arguments.
                 otherUsername = it.getString(ARG_ITEM_ID).toString()
             }
         }
 
-        //TODO: crash when rotates, ChatViewModel is re-created on configuration change?
-            //val parentActivity: ItemDetailHostActivity = activity as ItemDetailHostActivity
-            //thisUsername = parentActivity.thisUser
-            //Log.d("ItemDetailFragment", parentActivity.thisUser)
     }
+
 
     override fun onCreateView(inflater: LayoutInflater,
                               container: ViewGroup?,
@@ -91,10 +92,11 @@ class ItemDetailFragment : Fragment() {
         chatRecyclerView.adapter = adapter
         val rootView = binding.root
 
-        Log.d("ItemDetailFragment", "ItemDetailFragment Created, Otherusername: ${otherUsername}")
+        Log.d("ItemDetailFragment", "ItemDetailFragment Created and Inflated, Otherusername: ${otherUsername}")
 
         return rootView
     }
+
 
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
         super.onViewCreated(view, savedInstanceState)
@@ -109,6 +111,22 @@ class ItemDetailFragment : Fragment() {
         )
     }
 
+    // to set toolbar title as otherUsername, needs to retrieve a reference to toolbar from ItemDetailHostActivity
+    // after a configuration change as rotation this is the right to retrieve this fragment parent activity and it's toolbar reference
+    override fun onActivityCreated(savedInstanceState: Bundle?) {
+        super.onActivityCreated(savedInstanceState)
+        var activity = activity as ItemDetailHostActivity
+        activity.setToolBarTitle(otherUsername)
+    }
+
+    // when detached sets toolbar title to "chats" (simple navigation forward/backwards)
+    override fun onDetach() {
+        super.onDetach()
+
+        var activity = activity as ItemDetailHostActivity
+        activity.setToolBarTitle(getString(R.string.toolbar_chatLists))
+    }
+
 
     override fun onDestroyView() {
         super.onDestroyView()
@@ -117,10 +135,10 @@ class ItemDetailFragment : Fragment() {
 
 
     companion object {
-        /**
-         * The fragment argument representing the item ID that this fragment represents.
-         */
+
+        // The fragment argument representing the item ID that this fragment represents.
         const val ARG_ITEM_ID = "item_id"
+
     }
 
     // inner classes MessageHolder and ChatAdapter for ChatRecyclerView
@@ -135,13 +153,15 @@ class ItemDetailFragment : Fragment() {
         fun bind(message: Message){
             this.message = message
             messageText.text = message.text
-            if(this.message.fromUser==thisUsername){
-                messageSender.text = "Tu" //TODO: change hardcoded string
+            if(this.message.fromUser == thisUsername) {
+                messageSender.text = "You" //TODO: change hardcoded string
+                this.messageText.setBackgroundColor(resources.getColor(R.color.teal_200))
             } else{
                 messageSender.text = otherUsername
+                this.messageText.setBackgroundColor(resources.getColor(R.color.white))
             }
 
-            messageDate.text = Date(this.message.date).toString() //TODO: change in only hours
+            messageDate.text = DateFormat.getDateInstance(DateFormat.LONG, Locale.ENGLISH).format(this.message.date).toString() //TODO: change in only hours
         }
 
     }

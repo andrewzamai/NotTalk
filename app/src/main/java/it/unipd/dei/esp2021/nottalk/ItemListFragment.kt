@@ -42,15 +42,15 @@ class ItemListFragment : Fragment() {
     // reference to adapter, initially emptyList() then populated in OnViewCreated
     private var adapter: UserAdapter? = UserAdapter(emptyList())
 
-    // This property is only valid between onCreateView and onDestroyView.
+    // This property is only valid between onCreateView and onDestroyView
     private val binding get() = _binding!!
 
-    // Lazy initialization of a UserListViewModel instance
+    // Lazy initialization of a UserListViewModel instance, will be instantiated only when needed for the first time
     private val userListViewModel: UserListViewModel by lazy {
-        ViewModelProvider(this).get(UserListViewModel::class.java)
+        ViewModelProvider(this).get(UserListViewModel::class.java) //ViewModelProvider retrieves the already instantiated view if present (viewModel survives configuration changes as rotation)
     }
 
-    // right fragment in Tablet layout configuration, if null we are on a hand-set device
+    // right-side fragment in Tablet layout configuration, if null we are on a hand-set device
     private var itemDetailFragmentContainer: View? = null
 
 
@@ -89,34 +89,6 @@ class ItemListFragment : Fragment() {
         */
         itemDetailFragmentContainer = view.findViewById(R.id.item_detail_nav_container)
 
-        /**
-         * Click Listener to trigger navigation based on if you have
-         * a single pane layout or two pane layout
-         */
-        /*
-        val onClickListener = View.OnClickListener { itemView ->
-            // item selected is passed to the destination fragment using a Bundle object:
-            // ARG_ITEM_ID is a constant in companion object in ItemDetailFragment
-            // creates pair ARG_ITEM_ID-idItemPressed and saves it in a bundle passed in navigate method
-            // the destination fragment will check in bundle if there is ARG_ITEM_ID key
-            /*
-            val item = itemView.tag as PlaceholderContent.PlaceholderItem //PlaceHolder numbers to replace
-            val bundle = Bundle()
-            bundle.putString(
-                ItemDetailFragment.ARG_ITEM_ID,
-                item.id
-            )
-            */
-            // if not null (side by side fragments) retrieves NavController associated with ItemDetailFragment (NavController in HostActivity) and navigates to fragment_item_detail (sub_nav_graph.xml)
-            if (itemDetailFragmentContainer != null) {
-                itemDetailFragmentContainer!!.findNavController()
-                    .navigate(R.id.fragment_item_detail, Bundle())
-            } else {
-                // show_item_detail is the action ID that navigates from list fragment to detail fragment
-                itemView.findNavController().navigate(R.id.show_item_detail, Bundle())
-            }
-        }
-        */
 
         // tells the UserListViewModel to observe for changes in userListLiveData, refresh the recycler view if changed
         userListViewModel.userListLiveData.observe(
@@ -153,19 +125,19 @@ class ItemListFragment : Fragment() {
         }
 
         override fun onClick(v: View?) {
-            Toast.makeText(context, "${user.username} pressed", Toast.LENGTH_SHORT).show() //TODO: eliminate toast
 
             val bundle = Bundle()
             bundle.putString(
                 ItemDetailFragment.ARG_ITEM_ID,
                 user.username
             )
-
+            
             if (itemDetailFragmentContainer != null) {
                 itemDetailFragmentContainer!!.findNavController().navigate(R.id.fragment_item_detail, bundle)
             } else {
                 // show_item_detail is the action ID that navigates from list fragment to detail fragment
                 itemView.findNavController().navigate(R.id.show_item_detail, bundle)
+
             }
         }
     }
@@ -194,9 +166,5 @@ class ItemListFragment : Fragment() {
         adapter = UserAdapter(users)
         usersRecyclerView.adapter = adapter
     }
-
-
-
-
 
 }
