@@ -6,6 +6,7 @@ import android.os.Build
 import android.os.IBinder
 import android.util.Log
 import androidx.core.content.ContextCompat
+import it.unipd.dei.esp2021.nottalk.NotTalkRepository
 import it.unipd.dei.esp2021.nottalk.database.ChatDatabase
 import it.unipd.dei.esp2021.nottalk.database.FileManager
 import java.util.concurrent.Executor
@@ -30,8 +31,8 @@ class SyncService : Service() {
 
         backgroundExecutor.scheduleAtFixedRate({
             try {
-                val sp1 = getSharedPreferences("Login", MODE_PRIVATE)
-                val username = sp1.getString("username", "")
+                val sp1 = getSharedPreferences("notTalkPref", MODE_PRIVATE)
+                val username = sp1.getString("thisUsername", "")
                 val uuid = sp1.getString("uuid", "")
 
                 val sa = ServerAdapter()
@@ -47,8 +48,9 @@ class SyncService : Service() {
                             msg.text=path
                         }
                     }
-                    val cd = ChatDatabase.getDatabase(applicationContext)
-                    cd.messageDao().insertAll(response.first)
+                    //val cd = ChatDatabase.getDatabase(applicationContext)
+                    val cd = NotTalkRepository.get()
+                    cd.insertMessages(response.first)
                     sa.deleteMsg(username!!, uuid!!, response.second)
                 }
             }

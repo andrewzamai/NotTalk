@@ -1,6 +1,7 @@
 package it.unipd.dei.esp2021.nottalk
 
 import android.content.Context
+import android.content.Intent
 import android.content.SharedPreferences
 import android.os.Bundle
 import android.widget.Toast
@@ -15,6 +16,7 @@ import androidx.navigation.ui.navigateUp
 import androidx.navigation.ui.setupActionBarWithNavController
 import androidx.navigation.ui.setupWithNavController
 import it.unipd.dei.esp2021.nottalk.databinding.ActivityItemDetailBinding
+import it.unipd.dei.esp2021.nottalk.remote.SyncService
 
 /**
  * This activity will hosts the two fragments (ItemListFragment/ItemDetailFragment):
@@ -42,8 +44,9 @@ class ItemDetailHostActivity : AppCompatActivity() {
         // TODO: change from hardcoded username admin in username specified from user when registering
         sharedPref = getSharedPreferences("notTalkPref", MODE_PRIVATE)
         with (sharedPref.edit()){
-            if(sharedPref.getString("thisUsername", "absent") == "absent"){
+            if(sharedPref.getString("thisUsername", "") == ""){
                 putString("thisUsername", "admin")
+                putString("uuid", "b35ac938-b26e-11eb-9860-12c65fa32e3c")
                 apply()
             }
         }
@@ -59,6 +62,9 @@ class ItemDetailHostActivity : AppCompatActivity() {
         val appBarConfiguration: AppBarConfiguration = AppBarConfiguration(navController.graph)
         toolbar.setupWithNavController(navController, appBarConfiguration)
         toolbar.title = getString(R.string.toolbar_chatLists)
+
+        // start syncService
+        applicationContext.startService(Intent(this, SyncService::class.java))
     }
 
 

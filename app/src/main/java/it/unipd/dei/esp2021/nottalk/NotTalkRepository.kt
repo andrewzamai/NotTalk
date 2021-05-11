@@ -1,12 +1,15 @@
 package it.unipd.dei.esp2021.nottalk
 
 import android.content.Context
+import android.widget.Toast
 import androidx.lifecycle.LiveData
 import androidx.room.Room
 import it.unipd.dei.esp2021.nottalk.database.ChatDatabase
 import it.unipd.dei.esp2021.nottalk.database.Message
 import it.unipd.dei.esp2021.nottalk.database.User
+import it.unipd.dei.esp2021.nottalk.remote.ServerAdapter
 import java.lang.IllegalStateException
+import java.util.*
 import java.util.concurrent.Executors
 
 // the name of the database file
@@ -29,6 +32,9 @@ class NotTalkRepository private constructor(context: Context){
         DATABASE_NAME
     ).build()
 
+    private val context = context
+    private val server: ServerAdapter = ServerAdapter()
+
     // reference to an UserDao instance
     private val userDao = database.userDao()
     // reference to a MessageDao instance
@@ -46,10 +52,42 @@ class NotTalkRepository private constructor(context: Context){
         }
     }
 
+    fun insertMessages(messages: List<Message>) {
+        executor.execute {
+            messageDao.insertAll(messages)
+        }
+    }
+
+    fun insertMessage(message: Message) {
+        executor.execute {
+            messageDao.insert(message)
+        }
+    }
+
     // MessageDao adapter functions
     fun getConvo(thisUser: String, otherUser: String): LiveData<List<Message>> = messageDao.findConvo(thisUser, otherUser)
 
+    fun sendTextMessage(thisUsername: String, uuid: String, text: String, otherUsername: String){
+        Thread(Runnable {
+            val msg = Message(
+                otherUsername,
+                thisUsername,
+                Calendar.getInstance().timeInMillis,
+                "text",
+                text
+            )
+            insertMessage(msg)
+            val response = server.sendTextMsg(msg.fromUser, uuid, msg.toUser, msg.date, msg.text)
+            if (response != "ok") {
+                Toast.makeText(context.applicationContext, response, Toast.LENGTH_SHORT).show()
+                this.deleteMessage(msg)
+            }
+        }).start()
+    }
 
+    fun deleteMessage(message: Message){
+        messageDao.delete(message)
+    }
 
     // Singleton Design Pattern
     companion object{
