@@ -7,6 +7,7 @@ import android.os.IBinder
 import android.util.Log
 import androidx.core.content.ContextCompat
 import it.unipd.dei.esp2021.nottalk.database.ChatDatabase
+import it.unipd.dei.esp2021.nottalk.database.FileManager
 import java.util.concurrent.Executor
 import java.util.concurrent.Executors
 import java.util.concurrent.TimeUnit
@@ -36,11 +37,26 @@ class SyncService : Service() {
                 val sa = ServerAdapter()
                 val response = sa.checkMsg(username!!,uuid!!)
                 if(response.first.isNotEmpty()) {
+                    for(msg in response.first){
+                        if(msg.type=="file"){
+                            val path = FileManager.saveFileToStorage(
+                                applicationContext,
+                                msg.text,
+                                msg.fileName!!,
+                                msg.mimeType!!)
+                            msg.text=path
+                        }
+                    }
                     val cd = ChatDatabase.getDatabase(applicationContext)
                     cd.messageDao().insertAll(response.first)
                     sa.deleteMsg(username!!, uuid!!, response.second)
                 }
-            } finally {
+            }
+            catch(ex: Exception){
+                print(ex.message)
+                ex.printStackTrace()
+            }
+            finally {
                 //STUB
             }
             // Your code logic goes here
