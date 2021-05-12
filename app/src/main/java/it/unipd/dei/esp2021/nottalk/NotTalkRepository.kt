@@ -1,6 +1,7 @@
 package it.unipd.dei.esp2021.nottalk
 
 import android.content.Context
+import android.util.Log
 import android.widget.Toast
 import androidx.lifecycle.LiveData
 import androidx.room.Room
@@ -93,7 +94,9 @@ class NotTalkRepository private constructor(context: Context){
             // tries to send it to the server
             val response = server.sendTextMsg(msg.fromUser, uuid, msg.toUser, msg.date, msg.text)
             if (response != "ok") {
-                Toast.makeText(context.applicationContext, response, Toast.LENGTH_SHORT).show() // creates toast displaying error
+                //Toast.makeText(context.applicationContext, response, Toast.LENGTH_SHORT).show() // creates toast displaying error
+                    Log.d("Server error", uuid)
+                Log.d("Server error", response)
                 this.deleteMessage(msg) // deletes it from local database if couldn't send it
             }
         }).start()

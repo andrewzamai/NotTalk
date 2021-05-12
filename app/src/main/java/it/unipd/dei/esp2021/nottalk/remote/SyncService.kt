@@ -1,11 +1,17 @@
 package it.unipd.dei.esp2021.nottalk.remote
 
+import android.app.NotificationManager
+import android.app.PendingIntent
 import android.app.Service
 import android.content.Intent
 import android.os.Build
 import android.os.IBinder
 import android.util.Log
+import androidx.core.app.NotificationCompat
+import androidx.core.app.NotificationManagerCompat
 import androidx.core.content.ContextCompat
+import it.unipd.dei.esp2021.nottalk.ItemDetailFragment
+import it.unipd.dei.esp2021.nottalk.ItemDetailHostActivity
 import it.unipd.dei.esp2021.nottalk.NotTalkRepository
 import it.unipd.dei.esp2021.nottalk.database.ChatDatabase
 import it.unipd.dei.esp2021.nottalk.database.FileManager
@@ -38,6 +44,7 @@ class SyncService : Service() {
                 val sa = ServerAdapter()
                 val response = sa.checkMsg(username!!,uuid!!)
                 if(response.first.isNotEmpty()) {
+
                     for(msg in response.first){
                         if(msg.type=="file"){
                             val path = FileManager.saveFileToStorage(
@@ -52,6 +59,21 @@ class SyncService : Service() {
                     val cd = NotTalkRepository.get()
                     cd.insertMessages(response.first)
                     sa.deleteMsg(username!!, uuid!!, response.second)
+
+
+                        val notification = NotificationCompat
+                            .Builder(applicationContext, "notTalk")
+                            .setTicker("Nuovi messaggi1")
+                            .setSmallIcon(android.R.drawable.ic_media_play)
+                            .setContentTitle("Nuovi messaggi2")
+                            .setContentText("Hai ${response.first.size} nuovi messaggi.")
+                            .setContentIntent(PendingIntent.getActivity(applicationContext, 0, Intent(applicationContext, ItemDetailHostActivity::class.java),0))
+                            .setAutoCancel(true)
+                            .build()
+
+                        val notificationManager = NotificationManagerCompat.from(applicationContext)
+                        notificationManager.notify(0, notification)
+
                 }
             }
             catch(ex: Exception){

@@ -44,12 +44,16 @@ class ItemDetailHostActivity : AppCompatActivity() {
         // TODO: change from hardcoded username admin in username specified from user when registering
         sharedPref = getSharedPreferences("notTalkPref", MODE_PRIVATE)
         with (sharedPref.edit()){
+            /*
             if(sharedPref.getString("thisUsername", "") == ""){
                 putString("thisUsername", "admin")
-                putString("uuid", "b35ac938-b26e-11eb-9860-12c65fa32e3c")
+                putString("uuid", "331e698e-b33e-11eb-8632-6224d93e4c38")
                 apply()
             }
-        }
+             */
+            putString("thisUsername", "admin")
+            putString("uuid", "331e698e-b33e-11eb-8632-6224d93e4c38")
+        }.apply()
 
         // initialize a navigation host fragment by retrieving Fragment Container View ID declared in hosting activity xml file activity_item_detail.xml
         val navHostFragment = supportFragmentManager.findFragmentById(R.id.nav_host_fragment_item_detail) as NavHostFragment
