@@ -57,7 +57,7 @@ class ItemDetailHostActivity : AppCompatActivity() {
         val navController = navHostFragment.navController
 
         // set up ToolBar, use toolbar instead of action bar (action bar will display difference behaviours depending on device)
-        // toolbar does not need overriding onNavigateUp
+        // toolbar does not need overriding onNavigateUp method
         toolbar = binding.toolbar // gets reference
         val appBarConfiguration: AppBarConfiguration = AppBarConfiguration(navController.graph)
         toolbar.setupWithNavController(navController, appBarConfiguration)
@@ -65,7 +65,9 @@ class ItemDetailHostActivity : AppCompatActivity() {
 
         // start syncService
         applicationContext.startService(Intent(this, SyncService::class.java))
+
     }
+
 
 
 

@@ -27,10 +27,11 @@
     <EditText
         android:id="@+id/editText"
         android:layout_width="262dp"
-        android:layout_height="72dp"
+        android:layout_height="60dp"
         android:layout_marginStart="76dp"
         android:layout_marginEnd="102dp"
         android:layout_marginBottom="16dp"
+        android:background="@color/white"
         app:layout_constraintBottom_toBottomOf="parent"
         app:layout_constraintEnd_toStartOf="@+id/sendButton"
         app:layout_constraintHorizontal_bias="0.31"

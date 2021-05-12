@@ -65,13 +65,15 @@ class ItemListFragment : Fragment() {
         usersRecyclerView.layoutManager = LinearLayoutManager(context) // assign a LayoutManager
         usersRecyclerView.adapter = adapter // pass an adapter (initially emptyList)
 
-        // insert some users in the database
+        // manually insert some users in the database (gives error if already present)
         //if(userListViewModel.userListLiveData.value.isNullOrEmpty()) {
             //userListViewModel.insertUser(User("Andrew"))
             //userListViewModel.insertUser(User("Filippo"))
             //userListViewModel.insertUser(User("Alessandro"))
             //userListViewModel.insertUser(User("Daniele"))
         //}
+
+        //userListViewModel.insertUser(User("Gianni"))
 
         return binding.root
     }
@@ -126,6 +128,8 @@ class ItemListFragment : Fragment() {
 
         override fun onClick(v: View?) {
 
+            // uses a bundle to communicate between listFragment and detailFragment
+            // the selected username is saved in the bundle and passed as argument to the detailFragment
             val bundle = Bundle()
             bundle.putString(
                 ItemDetailFragment.ARG_ITEM_ID,
@@ -133,14 +137,16 @@ class ItemListFragment : Fragment() {
             )
             
             if (itemDetailFragmentContainer != null) {
+                // tablet layout
                 itemDetailFragmentContainer!!.findNavController().navigate(R.id.fragment_item_detail, bundle)
             } else {
+                // hand-set device layout
                 // show_item_detail is the action ID that navigates from list fragment to detail fragment
                 itemView.findNavController().navigate(R.id.show_item_detail, bundle)
-
             }
         }
     }
+
 
     // takes a list of users and populates the recycler
     private inner class UserAdapter(var users: List<User>) : RecyclerView.Adapter<UserHolder>() {

@@ -42,19 +42,21 @@ class ItemDetailFragment : Fragment() {
 
     // reference to Fragment View
     private var _binding: FragmentItemDetailBinding? = null
+    // editText view reference
+    private lateinit var messageEditText: EditText
+    // sendButton view reference
+    private lateinit var sendButton: ImageButton
 
+    // reference to the (singleton) notTalkRepository instance
     private val repository: NotTalkRepository = NotTalkRepository.get()
 
-    // the username of the selected detail chat (since username are unique it's possible to retrieve the User from its username)
-    private lateinit var otherUsername: String // receiver (user's chat pressed)
-    private lateinit var thisUsername: String // sender
-    private lateinit var uuid: String
+    // since usernames are unique it's possible to re-create a User from its username
+    private lateinit var otherUsername: String // receiver (user's chat pressed in listFragment)
+    private lateinit var thisUsername: String // sender (this application user)
+    private lateinit var uuid: String // uuid of this application user (sender)
 
     // reference to chat's recyclerView
     private lateinit var chatRecyclerView: RecyclerView
-    private lateinit var messageEditText: EditText
-    private lateinit var sendButton: ImageButton
-
     // reference to adapter, initially emptyList() then populated in OnViewCreated
     private var adapter: ItemDetailFragment.ChatAdapter? = ChatAdapter(emptyList())
 
@@ -67,8 +69,11 @@ class ItemDetailFragment : Fragment() {
     private val binding get() = _binding!!
 
 
+    // Fragment Lifecycle methods override
+
     override fun onAttach(context: Context) {
         super.onAttach(context)
+        // retrieves thisUsername and uuid from sharedPreferences
         thisUsername = context.getSharedPreferences("notTalkPref", MODE_PRIVATE).getString("thisUsername", "")!!
         uuid = context.getSharedPreferences("notTalkPref", MODE_PRIVATE).getString("uuid", "")!!
     }
@@ -95,8 +100,10 @@ class ItemDetailFragment : Fragment() {
 
         _binding = FragmentItemDetailBinding.inflate(inflater, container, false)
         chatRecyclerView = binding.chatList // gets a reference to RecyclerView widget declared in fragment_item_list.xml
-        chatRecyclerView.layoutManager = LinearLayoutManager(context) // assign a LayoutManager
-        chatRecyclerView.adapter = adapter
+        val linearLayoutManager: LinearLayoutManager = LinearLayoutManager(context)
+        linearLayoutManager.reverseLayout = true // populates recycler view from bottom (messages are ordered in de-crescent order of date)
+        chatRecyclerView.layoutManager = linearLayoutManager // assign a LayoutManager
+        chatRecyclerView.adapter = adapter // emptylist initially passed
         val rootView = binding.root
 
         Log.d("ItemDetailFragment", "ItemDetailFragment Created and Inflated, Otherusername: ${otherUsername}")
@@ -104,6 +111,11 @@ class ItemDetailFragment : Fragment() {
         // TODO: Modificare layout tablet
         messageEditText = binding.editText!!
         sendButton = binding.sendButton!!
+
+        // retrieves editText content if in onSaveInstanceState
+        // could have done it in onCreate but messageEditText reference was not yet get
+        val messageText = savedInstanceState?.getString(KEY_MESSAGE).toString()
+        messageEditText.setText(messageText)
 
         return rootView
     }
@@ -132,6 +144,7 @@ class ItemDetailFragment : Fragment() {
 
     override fun onStart() {
         super.onStart()
+
         val messageWatcher = object : TextWatcher {
             override fun beforeTextChanged(s: CharSequence?, start: Int, count: Int, after: Int) {}
             override fun onTextChanged(s: CharSequence?, start: Int, before: Int, count: Int) {}
@@ -140,10 +153,16 @@ class ItemDetailFragment : Fragment() {
         messageEditText.addTextChangedListener(messageWatcher)
 
         sendButton.setOnClickListener {
-            val text = messageEditText.text.toString()
-            Log.d("sendButton",text)
-            repository.sendTextMessage(thisUsername,uuid,text,otherUsername)
-            //Pulire edittext
+            val messageText = messageEditText.text.toString()
+            // doesn't send message if empty
+            if(messageText.isNotEmpty()){
+                // Log.d("sendButton", messageText)
+                repository.sendTextMessage(thisUsername, uuid, messageText, otherUsername)
+            }
+            // clears the editText
+            messageEditText.text.clear()
+
+            //TODO: salvare in persistentstate contenuto edit test nel caso di rotazione mentre sto scrivendo
         }
     }
 
@@ -162,11 +181,17 @@ class ItemDetailFragment : Fragment() {
     }
 
 
-    companion object {
+    override fun onSaveInstanceState(outState: Bundle) {
+        super.onSaveInstanceState(outState)
+        // saves editText message content in persistentState bundle
+        outState.putString(KEY_MESSAGE, messageEditText.text.toString())
+    }
 
+
+    companion object {
         // The fragment argument representing the item ID that this fragment represents.
         const val ARG_ITEM_ID = "item_id"
-
+        private const val KEY_MESSAGE = "textmessage"
     }
 
     // inner classes MessageHolder and ChatAdapter for ChatRecyclerView
@@ -183,10 +208,12 @@ class ItemDetailFragment : Fragment() {
             messageText.text = message.text
             if(this.message.fromUser == thisUsername) {
                 messageSender.text = "You" //TODO: change hardcoded string
-                this.messageText.setBackgroundColor(resources.getColor(R.color.teal_200))
+                //this.messageText.setBackgroundColor(resources.getColor(R.color.teal_200))
+                this.itemView.setBackgroundColor(resources.getColor(R.color.teal_200))
             } else{
                 messageSender.text = otherUsername
-                this.messageText.setBackgroundColor(resources.getColor(R.color.white))
+                //this.messageText.setBackgroundColor(resources.getColor(R.color.white))
+                this.itemView.setBackgroundColor(resources.getColor(R.color.white))
             }
 
             messageDate.text = DateFormat.getDateInstance(DateFormat.LONG, Locale.ENGLISH).format(this.message.date).toString() //TODO: change in only hours

@@ -10,7 +10,7 @@ android {
 
     defaultConfig {
         applicationId "it.unipd.dei.esp2021.nottalk"
-        minSdkVersion 29
+        minSdkVersion 30
         targetSdkVersion 30
         versionCode 1
         versionName "1.0"

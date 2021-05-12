@@ -33,6 +33,7 @@ class NotTalkRepository private constructor(context: Context){
     ).build()
 
     private val context = context
+    // reference to a serverAdapter instance, one single instance accessed from a NotTalkRepository object
     private val server: ServerAdapter = ServerAdapter()
 
     // reference to an UserDao instance
@@ -43,7 +44,10 @@ class NotTalkRepository private constructor(context: Context){
     // single thread executor to perform functions as insert in database which needs not to stop the main (UI) thread
     private val executor = Executors.newSingleThreadExecutor()
 
-    // UserDao adapter functions
+
+
+// UserDao adapter functions
+
     fun getAllUsers(): LiveData<List<User>> = userDao.all // liveData enables to notify an observer about changes in the list
 
     fun insertUser(user: User) {
@@ -64,11 +68,19 @@ class NotTalkRepository private constructor(context: Context){
         }
     }
 
-    // MessageDao adapter functions
+
+
+// MessageDao adapter functions
     fun getConvo(thisUser: String, otherUser: String): LiveData<List<Message>> = messageDao.findConvo(thisUser, otherUser)
 
+
+
+// ServerAdapter functions
+
+    // to send a text message
     fun sendTextMessage(thisUsername: String, uuid: String, text: String, otherUsername: String){
         Thread(Runnable {
+            // creates a message object
             val msg = Message(
                 otherUsername,
                 thisUsername,
@@ -76,20 +88,25 @@ class NotTalkRepository private constructor(context: Context){
                 "text",
                 text
             )
+            // adds it to the local database
             insertMessage(msg)
+            // tries to send it to the server
             val response = server.sendTextMsg(msg.fromUser, uuid, msg.toUser, msg.date, msg.text)
             if (response != "ok") {
-                Toast.makeText(context.applicationContext, response, Toast.LENGTH_SHORT).show()
-                this.deleteMessage(msg)
+                Toast.makeText(context.applicationContext, response, Toast.LENGTH_SHORT).show() // creates toast displaying error
+                this.deleteMessage(msg) // deletes it from local database if couldn't send it
             }
         }).start()
     }
 
+    // to delete a message from the database
     fun deleteMessage(message: Message){
         messageDao.delete(message)
     }
 
-    // Singleton Design Pattern
+
+
+// Singleton Design Pattern for this class
     companion object{
         private var INSTANCE: NotTalkRepository? = null
 
@@ -104,5 +121,6 @@ class NotTalkRepository private constructor(context: Context){
             throw IllegalStateException("NotTalkRepository must be initialized!") //(initialized in NotTalkApplication at application start)
         }
     }
+
 
 }
