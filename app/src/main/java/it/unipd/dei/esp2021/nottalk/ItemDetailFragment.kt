@@ -30,6 +30,10 @@ import it.unipd.dei.esp2021.nottalk.databinding.ItemChatContentBinding
 import it.unipd.dei.esp2021.nottalk.databinding.ItemListContentBinding
 import java.lang.String.format
 import java.text.DateFormat
+import java.text.SimpleDateFormat
+import java.time.LocalDate
+import java.time.LocalDateTime
+import java.time.format.DateTimeFormatter
 import java.util.*
 
 /**
@@ -115,7 +119,7 @@ class ItemDetailFragment : Fragment() {
         // retrieves editText content if in onSaveInstanceState
         // could have done it in onCreate but messageEditText reference was not yet get
         val messageText = savedInstanceState?.getString(KEY_MESSAGE).toString()
-        messageEditText.setText(messageText)
+        if (messageText != "null") messageEditText.setText(messageText)
 
         return rootView
     }
@@ -185,6 +189,7 @@ class ItemDetailFragment : Fragment() {
         super.onSaveInstanceState(outState)
         // saves editText message content in persistentState bundle
         outState.putString(KEY_MESSAGE, messageEditText.text.toString())
+
     }
 
 
@@ -216,7 +221,10 @@ class ItemDetailFragment : Fragment() {
                 this.itemView.setBackgroundColor(resources.getColor(R.color.white))
             }
 
-            messageDate.text = DateFormat.getDateInstance(DateFormat.LONG, Locale.ENGLISH).format(this.message.date).toString() //TODO: change in only hours
+            //messageDate.text = DateFormat.getDateInstance(DateFormat.LONG, Locale.ENGLISH).format(this.message.date).toString() //TODO: change in only hours
+            val currentDate: Date = Date(this.message.date)
+            val simpleDateFormat: SimpleDateFormat = SimpleDateFormat("dd-MM-yyyy HH::mm")
+            messageDate.text = simpleDateFormat.format(currentDate)
         }
 
     }

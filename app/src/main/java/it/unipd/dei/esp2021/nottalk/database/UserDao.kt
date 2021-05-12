@@ -1,10 +1,7 @@
 package it.unipd.dei.esp2021.nottalk.database
 
 import androidx.lifecycle.LiveData
-import androidx.room.Dao
-import androidx.room.Delete
-import androidx.room.Insert
-import androidx.room.Query
+import androidx.room.*
 
 @Dao
 interface UserDao {
@@ -23,7 +20,7 @@ interface UserDao {
     @Insert
     fun insertAll(bills: List<User>)
 
-    @Insert
+    @Insert(onConflict = OnConflictStrategy.IGNORE)
     fun insert(bill: User)
 
     @Delete
