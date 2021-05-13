@@ -4,6 +4,7 @@ import android.app.Application
 import android.app.NotificationChannel
 import android.app.NotificationManager
 import android.os.Build
+import it.unipd.dei.esp2021.nottalk.util.AppNotificationManager
 
 class NotTalkApplication : Application() {
 
@@ -13,6 +14,7 @@ class NotTalkApplication : Application() {
         super.onCreate()
 
         NotTalkRepository.initialize(this)
+        AppNotificationManager.initialize(applicationContext)
 
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
             val name = "DefaultNotificationChannel"

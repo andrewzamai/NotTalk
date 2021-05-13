@@ -27,7 +27,7 @@ class FileManager: Application() {
             var mediaContentUri: Uri
             var values: ContentValues
             if(type=="image") {
-                directory = Environment.DIRECTORY_PICTURES+"/provaDB/"
+                directory = Environment.DIRECTORY_PICTURES+"/NotTalk/"
                 mediaContentUri = MediaStore.Images.Media.EXTERNAL_CONTENT_URI
                 values = ContentValues().apply {
                     put(MediaStore.Images.Media.DISPLAY_NAME, filename)
@@ -35,8 +35,8 @@ class FileManager: Application() {
                     put(MediaStore.Images.Media.RELATIVE_PATH, directory)
                 }
             }
-            if(type=="video"){
-                directory = Environment.DIRECTORY_MOVIES+"/provaDB/"
+            else if(type=="video"){
+                directory = Environment.DIRECTORY_MOVIES+"/NotTalk/"
                 mediaContentUri = MediaStore.Video.Media.EXTERNAL_CONTENT_URI
                 values = ContentValues().apply {
                     put(MediaStore.Video.Media.DISPLAY_NAME, filename)
@@ -44,8 +44,8 @@ class FileManager: Application() {
                     put(MediaStore.Video.Media.RELATIVE_PATH, directory)
                 }
             }
-            if(type=="audio"){
-                directory = Environment.DIRECTORY_MUSIC+"/provaDB/"
+            else if(type=="audio"){
+                directory = Environment.DIRECTORY_MUSIC+"/NotTalk/"
                 mediaContentUri = MediaStore.Audio.Media.EXTERNAL_CONTENT_URI
                 values = ContentValues().apply {
                     put(MediaStore.Audio.Media.DISPLAY_NAME, filename)
@@ -54,7 +54,7 @@ class FileManager: Application() {
                 }
             }
             else{
-                directory = Environment.DIRECTORY_DOWNLOADS+"/provaDB/"
+                directory = Environment.DIRECTORY_DOWNLOADS+"/NotTalk/"
                 mediaContentUri = MediaStore.Downloads.EXTERNAL_CONTENT_URI
                 values = ContentValues().apply {
                     put(MediaStore.Downloads.DISPLAY_NAME, filename)

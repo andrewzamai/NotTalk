@@ -15,6 +15,7 @@ import it.unipd.dei.esp2021.nottalk.ItemDetailHostActivity
 import it.unipd.dei.esp2021.nottalk.NotTalkRepository
 import it.unipd.dei.esp2021.nottalk.database.ChatDatabase
 import it.unipd.dei.esp2021.nottalk.database.FileManager
+import it.unipd.dei.esp2021.nottalk.util.AppNotificationManager
 import java.util.concurrent.Executor
 import java.util.concurrent.Executors
 import java.util.concurrent.TimeUnit
@@ -44,7 +45,6 @@ class SyncService : Service() {
                 val sa = ServerAdapter()
                 val response = sa.checkMsg(username!!,uuid!!)
                 if(response.first.isNotEmpty()) {
-
                     for(msg in response.first){
                         if(msg.type=="file"){
                             val path = FileManager.saveFileToStorage(
@@ -59,20 +59,9 @@ class SyncService : Service() {
                     val cd = NotTalkRepository.get()
                     cd.insertMessages(response.first)
                     sa.deleteMsg(username!!, uuid!!, response.second)
-
-
-                        val notification = NotificationCompat
-                            .Builder(applicationContext, "notTalk")
-                            .setTicker("Nuovi messaggi1")
-                            .setSmallIcon(android.R.drawable.ic_media_play)
-                            .setContentTitle("Nuovi messaggi2")
-                            .setContentText("Hai ${response.first.size} nuovi messaggi.")
-                            .setContentIntent(PendingIntent.getActivity(applicationContext, 0, Intent(applicationContext, ItemDetailHostActivity::class.java),0))
-                            .setAutoCancel(true)
-                            .build()
-
-                        val notificationManager = NotificationManagerCompat.from(applicationContext)
-                        notificationManager.notify(0, notification)
+                    val nm = AppNotificationManager.get()
+                    nm.append(response.first)
+                    nm.sendNotification()
 
                 }
             }

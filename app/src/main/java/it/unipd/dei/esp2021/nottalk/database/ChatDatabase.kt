@@ -43,8 +43,9 @@ abstract class ChatDatabase : RoomDatabase() {
                 Thread(Runnable{
                     val messageDao = INSTANCE?.messageDao()
                     val userDao = INSTANCE?.userDao()
-                    userDao?.insert(User("Tizio"))
-                    messageDao?.insert(Message("Tizio", "Caio", 12345678, "text", "ciao"))
+                    userDao?.insert(User("Gianni"))
+                    userDao?.insert(User("admin"))
+                    //messageDao?.insert(Message("Tizio", "Caio", 12345678, "text", "ciao"))
                 }).start()
             }
         }

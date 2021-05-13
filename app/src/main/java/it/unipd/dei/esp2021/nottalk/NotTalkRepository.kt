@@ -5,6 +5,8 @@ import android.util.Log
 import android.widget.Toast
 import androidx.lifecycle.LiveData
 import androidx.room.Room
+import androidx.room.RoomDatabase
+import androidx.sqlite.db.SupportSQLiteDatabase
 import it.unipd.dei.esp2021.nottalk.database.ChatDatabase
 import it.unipd.dei.esp2021.nottalk.database.Message
 import it.unipd.dei.esp2021.nottalk.database.User
@@ -31,7 +33,20 @@ class NotTalkRepository private constructor(context: Context){
         context.applicationContext,
         ChatDatabase::class.java,
         DATABASE_NAME
-    ).build()
+    )   .addCallback(ChatDatabaseCallback())
+        .build()
+
+    private class ChatDatabaseCallback(): RoomDatabase.Callback(){
+        override fun onCreate(db: SupportSQLiteDatabase) {
+            super.onCreate(db)
+            Thread(Runnable{
+                val db = get()
+                db.insertUser(User("Gianni"))
+                db.insertUser(User("admin"))
+            }).start()
+        }
+    }
+
 
     private val context = context
     // reference to a serverAdapter instance, one single instance accessed from a NotTalkRepository object

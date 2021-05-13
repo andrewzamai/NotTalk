@@ -147,12 +147,28 @@ class ServerAdapter {
             val messages = jsonResponse.getJSONArray("messages")
             for(i in 0 until size){
                 val jsonmsg = messages.getJSONObject(i)
-                val msg = Message(
-                        toUser=username,
-                        fromUser=jsonmsg.getString("fromuser"),
-                        date= jsonmsg.getLong("date"),
-                        type=jsonmsg.getString("type"),
-                        text=jsonmsg.getString("content"))
+                val type = jsonmsg.getString("type")
+                var msg: Message
+                if(type=="text") {
+                    msg = Message(
+                        toUser = username,
+                        fromUser = jsonmsg.getString("fromuser"),
+                        date = jsonmsg.getLong("date"),
+                        type = type,
+                        text = jsonmsg.getString("content")
+                    )
+                }
+                else{
+                    msg = Message(
+                        toUser = username,
+                        fromUser = jsonmsg.getString("fromuser"),
+                        date = jsonmsg.getLong("date"),
+                        type = type,
+                        text = jsonmsg.getString("content"))
+                    msg.fileName = jsonmsg.getString("filename")
+                    msg.mimeType = jsonmsg.getString("mimetype")
+
+                }
                 list.add(msg)
                 num.add(jsonmsg.getInt("id"))
             }

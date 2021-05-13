@@ -223,7 +223,7 @@ class ItemDetailFragment : Fragment() {
 
             //messageDate.text = DateFormat.getDateInstance(DateFormat.LONG, Locale.ENGLISH).format(this.message.date).toString() //TODO: change in only hours
             val currentDate: Date = Date(this.message.date)
-            val simpleDateFormat: SimpleDateFormat = SimpleDateFormat("dd-MM-yyyy HH::mm")
+            val simpleDateFormat: SimpleDateFormat = SimpleDateFormat("dd-MM-yyyy HH:mm")
             messageDate.text = simpleDateFormat.format(currentDate)
         }
 
