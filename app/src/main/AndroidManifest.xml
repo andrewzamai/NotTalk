@@ -22,6 +22,8 @@
             </intent-filter>
         </activity>
 
+        <activity android:name=".LoginActivity"/>
+
         <service android:name=".remote.SyncService" />
 
     </application>

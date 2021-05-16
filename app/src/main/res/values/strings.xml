@@ -2,4 +2,10 @@
     <string name="app_name">NotTalk</string>
     <string name="title_item_detail">Item Detail</string>
     <string name="toolbar_chatLists">Chats</string>
+    <string name="button_login_text">Login</string>
+    <string name="button_create_text">Create</string>
+    <string name="user_text_hint">Username</string>
+    <string name="pass_text_hint">Password</string>
+    <string name="login_item_text">Login</string>
+    <string name="create_item_text">Create</string>
 </resources>

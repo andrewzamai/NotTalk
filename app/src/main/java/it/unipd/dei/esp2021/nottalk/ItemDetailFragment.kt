@@ -5,6 +5,7 @@ import android.app.ActionBar.DISPLAY_SHOW_TITLE
 import android.app.Activity
 import android.content.Context
 import android.content.Context.MODE_PRIVATE
+import android.content.Intent
 import android.content.res.Resources
 import android.media.Image
 import android.os.Bundle
@@ -18,11 +19,13 @@ import android.view.View
 import android.view.ViewGroup
 import android.widget.*
 import androidx.appcompat.app.AppCompatActivity
+import androidx.core.app.ActivityCompat
 import androidx.lifecycle.Observer
 import androidx.lifecycle.ViewModelProvider
 import androidx.navigation.findNavController
 import androidx.recyclerview.widget.LinearLayoutManager
 import androidx.recyclerview.widget.RecyclerView
+import it.unipd.dei.esp2021.nottalk.database.FileManager
 import it.unipd.dei.esp2021.nottalk.database.Message
 import it.unipd.dei.esp2021.nottalk.database.User
 import it.unipd.dei.esp2021.nottalk.databinding.FragmentItemDetailBinding
@@ -50,6 +53,7 @@ class ItemDetailFragment : Fragment() {
     private lateinit var messageEditText: EditText
     // sendButton view reference
     private lateinit var sendButton: ImageButton
+    private lateinit var fileButton: ImageButton
 
     // reference to the (singleton) notTalkRepository instance
     private val repository: NotTalkRepository = NotTalkRepository.get()
@@ -97,7 +101,6 @@ class ItemDetailFragment : Fragment() {
 
     }
 
-
     override fun onCreateView(inflater: LayoutInflater,
                               container: ViewGroup?,
                               savedInstanceState: Bundle?): View? {
@@ -115,6 +118,7 @@ class ItemDetailFragment : Fragment() {
         // TODO: Modificare layout tablet
         messageEditText = binding.editText!!
         sendButton = binding.sendButton!!
+        fileButton = binding.fileButton!!
 
         // retrieves editText content if in onSaveInstanceState
         // could have done it in onCreate but messageEditText reference was not yet get
@@ -168,6 +172,25 @@ class ItemDetailFragment : Fragment() {
 
             //TODO: salvare in persistentstate contenuto edit test nel caso di rotazione mentre sto scrivendo
         }
+
+        fileButton.setOnClickListener { view ->
+            val popUp = PopupMenu(requireContext(),view)
+            popUp.setOnMenuItemClickListener { item ->
+                var intent: Intent? = null
+                var code: Int? = null
+                when(item.itemId){
+                    R.id.popup_image -> activity?.let { code=FileManager.PICK_IMAGE; intent=FileManager.pickFileFromStorage(it,code!!) }
+                    R.id.popup_video -> activity?.let { code=FileManager.PICK_VIDEO; intent=FileManager.pickFileFromStorage(it,code!!) }
+                    R.id.popup_audio -> activity?.let { code=FileManager.PICK_AUDIO; intent=FileManager.pickFileFromStorage(it,code!!) }
+                    R.id.popup_file -> activity?.let { code=FileManager.PICK_FILE; intent=FileManager.pickFileFromStorage(it,code!!) }
+                    else -> return@setOnMenuItemClickListener false
+                }
+                startActivityForResult(intent, code!!, null)
+                true
+            }
+            popUp.inflate(R.menu.file_popup_menu)
+            popUp.show()
+        }
     }
 
     // when detached sets toolbar title to "chats" (simple navigation forward/backwards)
@@ -190,6 +213,21 @@ class ItemDetailFragment : Fragment() {
         // saves editText message content in persistentState bundle
         outState.putString(KEY_MESSAGE, messageEditText.text.toString())
 
+    }
+
+    override fun onActivityResult(requestCode: Int, resultCode: Int, data: Intent?) {
+        super.onActivityResult(requestCode, resultCode, data)
+        if(resultCode == Activity.RESULT_OK){
+            if( requestCode == FileManager.PICK_IMAGE||
+                requestCode == FileManager.PICK_VIDEO||
+                requestCode == FileManager.PICK_AUDIO||
+                requestCode == FileManager.PICK_FILE  ){
+                data?.data?.also { uri ->
+                    repository.sendFileMessage(requireContext(),uri,thisUsername,uuid,otherUsername)
+                    // Perform operations on the document using its URI.
+                }
+            }
+        }
     }
 
 

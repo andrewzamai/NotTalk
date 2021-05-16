@@ -1,8 +1,11 @@
 package it.unipd.dei.esp2021.nottalk
 
 import android.content.Context
+import android.net.Uri
+import android.util.Base64
 import android.util.Log
 import android.widget.Toast
+import androidx.documentfile.provider.DocumentFile
 import androidx.lifecycle.LiveData
 import androidx.room.Room
 import androidx.room.RoomDatabase
@@ -11,6 +14,7 @@ import it.unipd.dei.esp2021.nottalk.database.ChatDatabase
 import it.unipd.dei.esp2021.nottalk.database.Message
 import it.unipd.dei.esp2021.nottalk.database.User
 import it.unipd.dei.esp2021.nottalk.remote.ServerAdapter
+import java.io.InputStream
 import java.lang.IllegalStateException
 import java.util.*
 import java.util.concurrent.Executors
@@ -72,6 +76,11 @@ class NotTalkRepository private constructor(context: Context){
         }
     }
 
+    fun checkUser(username: String): Boolean{
+        return userDao.doesExist(username)
+
+    }
+
     fun insertMessages(messages: List<Message>) {
         executor.execute {
             messageDao.insertAll(messages)
@@ -113,6 +122,36 @@ class NotTalkRepository private constructor(context: Context){
                     Log.d("Server error", uuid)
                 Log.d("Server error", response)
                 this.deleteMessage(msg) // deletes it from local database if couldn't send it
+            }
+        }).start()
+    }
+
+    fun sendFileMessage(context: Context, uri: Uri, username: String, uuid: String, toUser: String){
+        Thread(Runnable {
+            val contentResolver = context.contentResolver
+            val mimetype = contentResolver.getType(uri)
+            val filename = DocumentFile.fromSingleUri(context, uri)?.name
+            val fileInStream: InputStream
+            val date = Calendar.getInstance().timeInMillis
+
+            contentResolver.run {
+                fileInStream = openInputStream(uri) ?: throw Exception("Error file")
+            }
+            val content = Base64.encodeToString(fileInStream.readBytes(), Base64.DEFAULT)
+            val result = server.sendFileMsg(
+                username,
+                uuid,
+                toUser,
+                date,
+                content,
+                mimetype!!,
+                filename!!
+            )
+            if (result == "ok") {
+                val msg = Message(username, toUser, date, "file", uri.toString())
+                msg.fileName = filename!!
+                msg.mimeType = mimetype!!
+                messageDao.insert(msg)
             }
         }).start()
     }

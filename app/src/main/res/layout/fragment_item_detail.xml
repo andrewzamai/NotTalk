@@ -7,45 +7,54 @@
     android:layout_height="match_parent"
     tools:context=".ItemDetailHostActivity">
 
+
     <androidx.recyclerview.widget.RecyclerView
         android:id="@+id/chat_list"
         android:name="it.unipd.dei.esp2021.nottalk.ItemDetailFragment"
-        android:layout_width="match_parent"
-        android:layout_height="600dp"
-        android:layout_marginBottom="43dp"
+        android:layout_width="394dp"
+        android:layout_height="634dp"
 
         app:layoutManager="LinearLayoutManager"
         app:layout_constraintBottom_toTopOf="@+id/editText"
         app:layout_constraintEnd_toEndOf="parent"
-        app:layout_constraintHorizontal_bias="0.0"
+        app:layout_constraintHorizontal_bias="0.47"
         app:layout_constraintStart_toStartOf="parent"
         app:layout_constraintTop_toTopOf="parent"
+        app:layout_constraintVertical_bias="0.08"
         tools:context="it.unipd.dei.esp2021.nottalk.ItemDetailHostActivity"
         tools:listitem="@layout/item_chat_content" />
 
-
     <EditText
         android:id="@+id/editText"
-        android:layout_width="262dp"
-        android:layout_height="60dp"
-        android:layout_marginStart="76dp"
-        android:layout_marginEnd="102dp"
+        android:layout_width="254dp"
+        android:layout_height="56dp"
+        android:layout_marginStart="16dp"
         android:layout_marginBottom="16dp"
         android:background="@color/white"
         app:layout_constraintBottom_toBottomOf="parent"
-        app:layout_constraintEnd_toStartOf="@+id/sendButton"
-        app:layout_constraintHorizontal_bias="0.31"
         app:layout_constraintStart_toStartOf="parent" />
 
     <ImageButton
         android:id="@+id/sendButton"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
-        android:layout_marginEnd="32dp"
-        android:layout_marginBottom="28dp"
+        android:layout_marginStart="24dp"
+        android:layout_marginBottom="16dp"
+        app:layout_constraintBottom_toBottomOf="parent"
+        app:layout_constraintEnd_toStartOf="@+id/fileButton"
+        app:layout_constraintHorizontal_bias="1.0"
+        app:layout_constraintStart_toEndOf="@+id/editText"
+        app:srcCompat="@android:drawable/ic_menu_send" />
+
+    <ImageButton
+        android:id="@+id/fileButton"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_marginEnd="8dp"
+        android:layout_marginBottom="16dp"
         app:layout_constraintBottom_toBottomOf="parent"
         app:layout_constraintEnd_toEndOf="parent"
-        app:srcCompat="@android:drawable/ic_menu_send" />
+        app:srcCompat="@android:drawable/ic_menu_gallery" />
 
 
 </androidx.constraintlayout.widget.ConstraintLayout>

@@ -1,25 +1,27 @@
 package it.unipd.dei.esp2021.nottalk
 
-import android.content.Context
-import android.os.Build
+import android.app.AlertDialog
+import android.content.DialogInterface
 import android.os.Bundle
-import android.telecom.Call
-import android.view.KeyEvent
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
+import android.widget.EditText
 import android.widget.TextView
 import android.widget.Toast
-import androidx.core.view.ViewCompat
 import androidx.fragment.app.Fragment
 import androidx.lifecycle.Observer
 import androidx.lifecycle.ViewModelProvider
 import androidx.navigation.findNavController
 import androidx.recyclerview.widget.LinearLayoutManager
 import androidx.recyclerview.widget.RecyclerView
+import com.google.android.material.floatingactionbutton.FloatingActionButton
 import it.unipd.dei.esp2021.nottalk.database.User
 import it.unipd.dei.esp2021.nottalk.databinding.FragmentItemListBinding
 import it.unipd.dei.esp2021.nottalk.databinding.ItemListContentBinding
+import it.unipd.dei.esp2021.nottalk.remote.ServerAdapter
+import java.util.concurrent.Executors
+
 
 /**
  * A Fragment representing a list of chats. This fragment
@@ -38,6 +40,7 @@ class ItemListFragment : Fragment() {
 
     // reference to recyclerview
     private lateinit var usersRecyclerView: RecyclerView
+    private lateinit var floatingAddUserButton: FloatingActionButton
 
     // reference to adapter, initially emptyList() then populated in OnViewCreated
     private var adapter: UserAdapter? = UserAdapter(emptyList())
@@ -64,6 +67,8 @@ class ItemListFragment : Fragment() {
         usersRecyclerView = binding.itemList // gets a reference to RecyclerView widget declared in fragment_item_list.xml
         usersRecyclerView.layoutManager = LinearLayoutManager(context) // assign a LayoutManager
         usersRecyclerView.adapter = adapter // pass an adapter (initially emptyList)
+
+        floatingAddUserButton = binding.adduserButton!!
 
         // manually insert some users in the database (gives error if already present)
         //if(userListViewModel.userListLiveData.value.isNullOrEmpty()) {
@@ -102,6 +107,48 @@ class ItemListFragment : Fragment() {
             }
         )
 
+    }
+
+    override fun onStart() {
+        super.onStart()
+        floatingAddUserButton.setOnClickListener{
+            //Toast.makeText(context, "FAB pressed", Toast.LENGTH_LONG).show()
+            val backgroundExecutor = Executors.newSingleThreadScheduledExecutor()
+            val alert = AlertDialog.Builder(context)
+            alert.setTitle("Add Conversation")
+            alert.setMessage("Insert username")
+            val input = EditText(context)
+            alert.setView(input)
+            alert.setPositiveButton("Ok", DialogInterface.OnClickListener { dialog, whichButton ->
+                // Do something with value!
+                backgroundExecutor.execute{
+                    val repo = NotTalkRepository.get()
+                    val sa = ServerAdapter()
+                    val username = input.text.toString()
+                    val result = sa.checkUser(username)
+                    val doesExist = repo.checkUser(username)
+                    context?.mainExecutor?.execute{
+                        if(!result){
+                            Toast.makeText(context, "User does not exist", Toast.LENGTH_LONG).show()
+                        }
+                        else if(result){
+                            if(doesExist){
+                                Toast.makeText(context, "User already in database", Toast.LENGTH_LONG).show()
+                            }
+                            else repo.insertUser(User(username))
+                        }
+                    }
+                }
+
+            })
+
+            alert.setNegativeButton("Cancel",
+                DialogInterface.OnClickListener { dialog, whichButton ->
+                    // Canceled.
+                })
+
+            alert.show()
+        }
     }
 
 
