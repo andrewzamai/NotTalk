@@ -34,7 +34,7 @@ import java.util.concurrent.Executors
 class ItemDetailHostActivity : AppCompatActivity(){
     companion object{
         val REQUEST_LOGIN = 10
-        val REQUEST_CREATE = 11
+        val LOGIN_INTENT = 11
     }
 
     // reference to sharedPreferences
@@ -50,6 +50,7 @@ class ItemDetailHostActivity : AppCompatActivity(){
         // saves in sharedPreferences this user's username
         // TODO: change from hardcoded username admin in username specified from user when registering
         sharedPref = getSharedPreferences("notTalkPref", MODE_PRIVATE)
+        /*
         with (sharedPref.edit()) {
             if (sharedPref.getString("thisUsername", null) == null) {
                 putString("thisUsername", "")
@@ -57,12 +58,11 @@ class ItemDetailHostActivity : AppCompatActivity(){
                 commit()
             }
         }
-        /*
         putString("thisUsername", "admin")
         putString("uuid", "331e698e-b33e-11eb-8632-6224d93e4c38")
         */
         //}.apply()
-
+        /*
         if(sharedPref.getString("thisUsername","")!="") {
             applicationContext.startService(Intent(this, SyncService::class.java))
         } else{
@@ -71,6 +71,16 @@ class ItemDetailHostActivity : AppCompatActivity(){
             intent.putExtra("option","MANDATORY")
             startActivityForResult(intent, REQUEST_LOGIN)
         }
+        */
+        try{
+            val data = intent.extras
+            if (data?.get("username") != null) {
+                with(sharedPref.edit()) {
+                    putString("thisUsername", data?.getString("username"))
+                    putString("uuid", data?.getString("uuid"))
+                }.commit()
+            }
+        } finally {}
 
         // View binding Android Jetpack feature
         // binding will get a reference to the layout, using dot notation is possible to get a reference to all contained ID widgets
@@ -101,24 +111,16 @@ class ItemDetailHostActivity : AppCompatActivity(){
                     startActivityForResult(intent, REQUEST_LOGIN)
                     true
                 }
-                R.id.create_item -> {
-                    applicationContext.stopService(Intent(this, SyncService::class.java))
-                    val intent = Intent(this, LoginActivity::class.java)
-                    intent.putExtra("requestCode",REQUEST_CREATE)
-                    startActivityForResult(intent, REQUEST_CREATE)
-                    true
-                }
                 R.id.logout_item -> {
                     applicationContext.stopService(Intent(this, SyncService::class.java))
                     val intent = Intent(this, LoginActivity::class.java)
-                    intent.putExtra("option","MANDATORY")
-                    intent.putExtra("requestCode",REQUEST_CREATE)
                     val sp1 = getSharedPreferences("notTalkPref", MODE_PRIVATE)
                     val ep = sp1.edit()
                     ep.putString("thisUsername", "")
                     ep.putString("uuid", "")
                     ep.commit()
-                    startActivityForResult(intent, REQUEST_LOGIN)
+                    finish()
+                    startActivity(intent)
                     true
                 }
                 R.id.delete_item -> {
@@ -149,9 +151,8 @@ class ItemDetailHostActivity : AppCompatActivity(){
                                     Toast.makeText(applicationContext,"User deleted successfully",Toast.LENGTH_LONG).show()
                                 }
                                 val intent = Intent(this, LoginActivity::class.java)
-                                intent.putExtra("requestCode",REQUEST_LOGIN)
-                                intent.putExtra("option","MANDATORY")
-                                startActivityForResult(intent, REQUEST_LOGIN)
+                                finish()
+                                startActivity(intent)
                             }
                             else{
                                 mainExecutor.execute {
@@ -170,12 +171,13 @@ class ItemDetailHostActivity : AppCompatActivity(){
         }
 
         // start syncService
+        applicationContext.startService(Intent(this, SyncService::class.java))
     }
 
 
     override fun onActivityResult(requestCode: Int, resultCode: Int, data: Intent?) {
         super.onActivityResult(requestCode, resultCode, data)
-        if(resultCode == Activity.RESULT_OK && (requestCode == REQUEST_LOGIN || requestCode == REQUEST_CREATE)){
+        if(resultCode == Activity.RESULT_OK && (requestCode == REQUEST_LOGIN)){
             val username = data?.getStringExtra("username")
             val uuid = data?.getStringExtra("uuid")
             sharedPref = getSharedPreferences("notTalkPref", MODE_PRIVATE)
@@ -184,9 +186,6 @@ class ItemDetailHostActivity : AppCompatActivity(){
                 putString("uuid", uuid)
             }.commit()
             applicationContext.startService(Intent(this, SyncService::class.java))
-        }
-        else if (resultCode == Activity.RESULT_CANCELED && (requestCode == REQUEST_LOGIN || requestCode == REQUEST_CREATE)){
-            finish()
         }
     }
 
