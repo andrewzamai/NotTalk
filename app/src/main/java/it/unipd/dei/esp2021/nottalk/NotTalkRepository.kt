@@ -1,5 +1,6 @@
 package it.unipd.dei.esp2021.nottalk
 
+import android.annotation.SuppressLint
 import android.content.Context
 import android.net.Uri
 import android.util.Base64
@@ -165,6 +166,7 @@ class NotTalkRepository private constructor(context: Context){
 
 // Singleton Design Pattern for this class
     companion object{
+        @SuppressLint("StaticFieldLeak")
         private var INSTANCE: NotTalkRepository? = null
 
         fun initialize(context: Context){

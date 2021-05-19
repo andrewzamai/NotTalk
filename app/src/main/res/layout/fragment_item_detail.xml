@@ -1,60 +1,77 @@
 <?xml version="1.0" encoding="utf-8"?>
-<androidx.constraintlayout.widget.ConstraintLayout xmlns:android="http://schemas.android.com/apk/res/android"
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:app="http://schemas.android.com/apk/res-auto"
     xmlns:tools="http://schemas.android.com/tools"
+
     android:id="@+id/item_detail_container"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
-    tools:context=".ItemDetailHostActivity">
-
+    android:paddingLeft="2dp"
+    android:paddingRight="2dp"
+    android:paddingTop="2dp"
+    android:paddingBottom="2dp"
+    android:orientation="vertical"
+    android:gravity="center"
+    tools:context=".ItemDetailHostActivity"
+    android:weightSum="10">
 
     <androidx.recyclerview.widget.RecyclerView
         android:id="@+id/chat_list"
         android:name="it.unipd.dei.esp2021.nottalk.ItemDetailFragment"
-        android:layout_width="394dp"
-        android:layout_height="634dp"
-
+        android:layout_width="match_parent"
+        android:layout_height="0dp"
+        android:paddingLeft="2dp"
+        android:paddingRight="2dp"
         app:layoutManager="LinearLayoutManager"
-        app:layout_constraintBottom_toTopOf="@+id/editText"
-        app:layout_constraintEnd_toEndOf="parent"
-        app:layout_constraintHorizontal_bias="0.47"
-        app:layout_constraintStart_toStartOf="parent"
-        app:layout_constraintTop_toTopOf="parent"
-        app:layout_constraintVertical_bias="0.08"
         tools:context="it.unipd.dei.esp2021.nottalk.ItemDetailHostActivity"
-        tools:listitem="@layout/item_chat_content" />
+        tools:listitem="@layout/item_chat_content"
+        android:layout_weight="9"/>
 
-    <EditText
-        android:id="@+id/editText"
-        android:layout_width="254dp"
-        android:layout_height="56dp"
-        android:layout_marginStart="16dp"
-        android:layout_marginBottom="16dp"
-        android:background="@color/white"
-        app:layout_constraintBottom_toBottomOf="parent"
-        app:layout_constraintStart_toStartOf="parent" />
+    <LinearLayout
+        android:layout_width="match_parent"
+        android:layout_height="0dp"
+        android:paddingLeft="2dp"
+        android:paddingRight="2dp"
+        android:paddingTop="2dp"
+        android:paddingBottom="2dp"
+        android:orientation="horizontal"
+        android:gravity="center_horizontal"
+        android:weightSum="10"
+        tools:context=".ItemDetailHostActivity"
+        android:layout_weight="1">
 
-    <ImageButton
-        android:id="@+id/sendButton"
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        android:layout_marginStart="24dp"
-        android:layout_marginBottom="16dp"
-        app:layout_constraintBottom_toBottomOf="parent"
-        app:layout_constraintEnd_toStartOf="@+id/fileButton"
-        app:layout_constraintHorizontal_bias="1.0"
-        app:layout_constraintStart_toEndOf="@+id/editText"
-        app:srcCompat="@android:drawable/ic_menu_send" />
+        <EditText
+            android:id="@+id/editText"
+            android:layout_width="0dp"
+            android:layout_height="match_parent"
+            android:layout_marginStart="4dp"
+            android:background="@color/white"
+            android:layout_weight="7"/>
 
-    <ImageButton
-        android:id="@+id/fileButton"
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        android:layout_marginEnd="8dp"
-        android:layout_marginBottom="16dp"
-        app:layout_constraintBottom_toBottomOf="parent"
-        app:layout_constraintEnd_toEndOf="parent"
-        app:srcCompat="@android:drawable/ic_menu_gallery" />
+        <ImageButton
+            android:id="@+id/sendButton"
+            android:layout_width="0dp"
+            android:layout_height="wrap_content"
+            android:layout_weight="1.5"
+            app:srcCompat="@android:drawable/ic_menu_send" />
+
+        <ImageButton
+            android:id="@+id/fileButton"
+            android:layout_width="0dp"
+            android:layout_height="wrap_content"
+            android:layout_weight="1.5"
+            android:layout_marginEnd="4dp"
+            app:srcCompat="@android:drawable/ic_menu_gallery" />
+
+    </LinearLayout>
 
 
-</androidx.constraintlayout.widget.ConstraintLayout>
+</LinearLayout>
+
+
+
+
+
+
+
+

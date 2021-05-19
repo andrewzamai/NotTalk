@@ -116,9 +116,9 @@ class ItemDetailFragment : Fragment() {
         Log.d("ItemDetailFragment", "ItemDetailFragment Created and Inflated, Otherusername: ${otherUsername}")
 
         // TODO: Modificare layout tablet
-        messageEditText = binding.editText!!
-        sendButton = binding.sendButton!!
-        fileButton = binding.fileButton!!
+        messageEditText = binding.editText
+        sendButton = binding.sendButton
+        fileButton = binding.fileButton
 
         // retrieves editText content if in onSaveInstanceState
         // could have done it in onCreate but messageEditText reference was not yet get
@@ -211,7 +211,9 @@ class ItemDetailFragment : Fragment() {
     override fun onSaveInstanceState(outState: Bundle) {
         super.onSaveInstanceState(outState)
         // saves editText message content in persistentState bundle
-        outState.putString(KEY_MESSAGE, messageEditText.text.toString())
+
+
+        outState.putString(KEY_MESSAGE, messageEditText.text.toString()) //TODO: crash lateinit property messageEditText has not been initialized
 
     }
 

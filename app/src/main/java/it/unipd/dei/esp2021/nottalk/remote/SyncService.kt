@@ -59,10 +59,12 @@ class SyncService : Service() {
                     val cd = NotTalkRepository.get()
                     cd.insertMessages(response.first)
                     sa.deleteMsg(username!!, uuid!!, response.second)
+
+
+
                     val nm = AppNotificationManager.get()
                     nm.append(response.first)
                     nm.sendNotification()
-
                 }
             }
             catch(ex: Exception){

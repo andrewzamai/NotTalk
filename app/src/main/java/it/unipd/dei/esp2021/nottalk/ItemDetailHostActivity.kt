@@ -5,11 +5,15 @@ import android.content.Context
 import android.content.Intent
 import android.content.SharedPreferences
 import android.os.Bundle
+import android.util.Log
 import android.view.MenuItem
 import android.widget.Toast
 import android.widget.Toolbar
 import androidx.appcompat.app.AppCompatActivity
+import androidx.fragment.app.FragmentManager
+import androidx.fragment.app.commit
 import androidx.lifecycle.ViewModelProvider
+import androidx.navigation.NavController
 import androidx.navigation.findNavController
 import androidx.navigation.fragment.NavHostFragment
 import androidx.navigation.fragment.findNavController
@@ -36,6 +40,8 @@ class ItemDetailHostActivity : AppCompatActivity(){
 
     // toolbar
     private lateinit var toolbar: androidx.appcompat.widget.Toolbar
+
+    private lateinit var navController: NavController
 
 
     override fun onCreate(savedInstanceState: Bundle?) {
@@ -66,7 +72,7 @@ class ItemDetailHostActivity : AppCompatActivity(){
         // initialize a navigation host fragment by retrieving Fragment Container View ID declared in hosting activity xml file activity_item_detail.xml
         val navHostFragment = supportFragmentManager.findFragmentById(R.id.nav_host_fragment_item_detail) as NavHostFragment
         // initialize a navigation controller in the hosting activity
-        val navController = navHostFragment.navController
+        navController = navHostFragment.navController
 
         // set up ToolBar, use toolbar instead of action bar (action bar will display difference behaviours depending on device)
         // toolbar does not need overriding onNavigateUp method
@@ -95,6 +101,8 @@ class ItemDetailHostActivity : AppCompatActivity(){
             }
         }
 
+        intent?.let(::handleIntent)
+
         // start syncService
         applicationContext.startService(Intent(this, SyncService::class.java))
     }
@@ -118,6 +126,35 @@ class ItemDetailHostActivity : AppCompatActivity(){
 
     fun setToolBarTitle(title: String) {
         toolbar.title = title
+    }
+
+    private fun handleIntent(intent: Intent) {
+        when (intent.action) {
+
+            Intent.ACTION_VIEW -> {
+                val username = intent.data?.lastPathSegment
+                if (username != null) {
+                    Log.d("Activity started by intent", username)
+                    val bundle = Bundle()
+                    bundle.putString(
+                        ItemDetailFragment.ARG_ITEM_ID,
+                        username
+                    )
+                    navController.navigate(R.id.show_item_detail, bundle)
+                }
+            }
+            /*
+            // Invoked when a text is shared through Direct Share.
+            Intent.ACTION_SEND -> {
+                val shortcutId = intent.getStringExtra(Intent.EXTRA_SHORTCUT_ID)
+                val text = intent.getStringExtra(Intent.EXTRA_TEXT)
+                val contact = Contact.CONTACTS.find { it.shortcutId == shortcutId }
+                if (contact != null) {
+                    openChat(contact.id, text)
+                }
+            }
+            */
+        }
     }
 
 }
