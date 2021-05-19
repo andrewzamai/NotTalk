@@ -7,5 +7,7 @@
     <string name="user_text_hint">Username</string>
     <string name="pass_text_hint">Password</string>
     <string name="login_item_text">Login</string>
-    <string name="create_item_text">Create</string>
+    <string name="create_item_text">Create user</string>
+    <string name="delete_item_text">Delete user</string>
+    <string name="logout_item_text">Logout</string>
 </resources>

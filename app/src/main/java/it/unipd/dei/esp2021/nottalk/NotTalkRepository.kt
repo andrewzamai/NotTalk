@@ -81,6 +81,12 @@ class NotTalkRepository private constructor(context: Context){
 
     }
 
+    fun deleteUser(username: String){
+        executor.execute {
+            userDao.delete(username)
+        }
+    }
+
     fun insertMessages(messages: List<Message>) {
         executor.execute {
             messageDao.insertAll(messages)
@@ -158,9 +164,22 @@ class NotTalkRepository private constructor(context: Context){
 
     // to delete a message from the database
     fun deleteMessage(message: Message){
-        messageDao.delete(message)
+        executor.execute {
+            messageDao.delete(message)
+        }
     }
 
+    fun deleteByUserTo(toUser: String){
+        executor.execute {
+            messageDao.deleteByUserTo(toUser)
+        }
+    }
+
+    fun deleteByUserFrom(fromUser: String){
+        executor.execute {
+            messageDao.deleteByUserFrom(fromUser)
+        }
+    }
 
 
 // Singleton Design Pattern for this class

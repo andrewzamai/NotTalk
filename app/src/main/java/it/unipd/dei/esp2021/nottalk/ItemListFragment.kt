@@ -9,6 +9,7 @@ import android.view.ViewGroup
 import android.widget.EditText
 import android.widget.TextView
 import android.widget.Toast
+import android.widget.Toast.LENGTH_LONG
 import androidx.fragment.app.Fragment
 import androidx.lifecycle.Observer
 import androidx.lifecycle.ViewModelProvider
@@ -139,14 +140,9 @@ class ItemListFragment : Fragment() {
                         }
                     }
                 }
-
             })
-
             alert.setNegativeButton("Cancel",
-                DialogInterface.OnClickListener { dialog, whichButton ->
-                    // Canceled.
-                })
-
+                DialogInterface.OnClickListener { dialog, whichButton -> })
             alert.show()
         }
     }
@@ -160,12 +156,13 @@ class ItemListFragment : Fragment() {
 
     // inner classes UserHolder and UserAdapter for UserRecyclerView
 
-    private inner class UserHolder(binding: ItemListContentBinding) : RecyclerView.ViewHolder(binding.root), View.OnClickListener {
+    private inner class UserHolder(binding: ItemListContentBinding) : RecyclerView.ViewHolder(binding.root), View.OnClickListener, View.OnLongClickListener {
         private lateinit var user: User // stores a reference to the User object
         private val username: TextView = binding.idUser //stores reference to textview field
 
         init{
             itemView.setOnClickListener(this)
+            itemView.setOnLongClickListener(this)
         }
 
         fun bind(user: User){
@@ -191,6 +188,11 @@ class ItemListFragment : Fragment() {
                 // show_item_detail is the action ID that navigates from list fragment to detail fragment
                 itemView.findNavController().navigate(R.id.show_item_detail, bundle)
             }
+        }
+
+        override fun onLongClick(v: View?):Boolean {
+            Toast.makeText(context,"Long pressed",LENGTH_LONG).show()
+            return true
         }
     }
 

@@ -28,4 +28,7 @@ interface UserDao {
 
     @Delete
     fun delete(bill: User)
+
+    @Query("DELETE FROM user WHERE username = :username")
+    fun delete(username: String)
 }

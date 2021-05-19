@@ -14,6 +14,7 @@ import it.unipd.dei.esp2021.nottalk.remote.ServerAdapter
 import java.util.concurrent.Executors
 
 class LoginActivity : AppCompatActivity() {
+    private var option: String? = "MANDATORY"
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         setContentView(R.layout.login_activity)
@@ -22,14 +23,24 @@ class LoginActivity : AppCompatActivity() {
         val loginButton = findViewById<Button>(R.id.login_button)
         val backgroundExecutor = Executors.newSingleThreadScheduledExecutor()
         val code = intent.extras?.getInt("requestCode")
+        option = intent.extras?.getString("option")
 
         if(code==ItemDetailHostActivity.REQUEST_CREATE) loginButton.setText(R.string.button_create_text)
+
 
         loginButton.setOnClickListener { view ->
             val sys = getSystemService(INPUT_METHOD_SERVICE) as InputMethodManager
             sys.hideSoftInputFromWindow(view.applicationWindowToken, 0)
             val username = userText.text.toString()
             val password = passText.text.toString()
+            if(username.isEmpty() || password.isEmpty()){
+                Toast.makeText(this, "Field must not be empty", Toast.LENGTH_LONG).show()
+                if(username.isEmpty()) userText.setBackgroundColor(0x33FF0000)
+                else userText.setBackgroundColor(0x0)
+                if(password.isEmpty()) passText.setBackgroundColor(0x33FF0000)
+                else passText.setBackgroundColor(0x0)
+                return@setOnClickListener
+            }
             val repo = ServerAdapter()
             var result: String
             if (code == ItemDetailHostActivity.REQUEST_LOGIN) {
@@ -74,6 +85,14 @@ class LoginActivity : AppCompatActivity() {
                     }
                 }
             }
+        }
+    }
+
+    override fun onBackPressed() {
+        if(option!="MANDATORY") super.onBackPressed()
+        else {
+            setResult(Activity.RESULT_CANCELED)
+            finish()
         }
     }
 }

@@ -32,6 +32,12 @@ interface MessageDao {
     @Insert
     fun insert(bill: Message)
 
+    @Query("DELETE FROM message WHERE toUser = :toUser")
+    fun deleteByUserTo(toUser: String)
+
+    @Query("DELETE FROM message WHERE fromUser = :fromUser")
+    fun deleteByUserFrom(fromUser: String)
+
     @Delete
     fun delete(bill: Message)
 }
