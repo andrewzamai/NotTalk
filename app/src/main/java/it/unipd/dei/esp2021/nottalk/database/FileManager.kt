@@ -83,6 +83,8 @@ class FileManager: Application() {
         fun pickFileFromStorage(activity: Activity, code: Int): Intent{
             return Intent(Intent.ACTION_OPEN_DOCUMENT).apply {
                 addCategory(Intent.CATEGORY_OPENABLE)
+                addFlags(Intent.FLAG_GRANT_PERSISTABLE_URI_PERMISSION)
+                addFlags(Intent.FLAG_GRANT_READ_URI_PERMISSION)
                 type = when(code){
                     PICK_IMAGE -> "image/*"
                     PICK_VIDEO -> "video/*"

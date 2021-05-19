@@ -2,6 +2,7 @@ package it.unipd.dei.esp2021.nottalk
 
 import android.annotation.SuppressLint
 import android.content.Context
+import android.content.Intent
 import android.net.Uri
 import android.util.Base64
 import android.util.Log
@@ -130,6 +131,7 @@ class NotTalkRepository private constructor(context: Context){
     fun sendFileMessage(context: Context, uri: Uri, username: String, uuid: String, toUser: String){
         Thread(Runnable {
             val contentResolver = context.contentResolver
+            contentResolver.takePersistableUriPermission(uri, Intent.FLAG_GRANT_READ_URI_PERMISSION)
             val mimetype = contentResolver.getType(uri)
             val filename = DocumentFile.fromSingleUri(context, uri)?.name
             val fileInStream: InputStream

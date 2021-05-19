@@ -8,6 +8,7 @@ import android.content.Context.MODE_PRIVATE
 import android.content.Intent
 import android.content.res.Resources
 import android.media.Image
+import android.net.Uri
 import android.os.Bundle
 import android.text.Editable
 import android.text.TextWatcher
@@ -247,24 +248,33 @@ class ItemDetailFragment : Fragment() {
         private val messageText: TextView = binding.messageSlot //stores reference to textview field
         private val messageSender: TextView = binding.messageSender
         private val messageDate: TextView = binding.messageDate
+        private val image: ImageView = binding.imageView
 
         fun bind(message: Message){
             this.message = message
-            messageText.text = message.text
+
             if(this.message.fromUser == thisUsername) {
                 messageSender.text = "You" //TODO: change hardcoded string
                 //this.messageText.setBackgroundColor(resources.getColor(R.color.teal_200))
                 this.itemView.setBackgroundColor(resources.getColor(R.color.teal_200))
+                //messageText.textAlignment = View.TEXT_ALIGNMENT_VIEW_END //TODO: justify right
             } else{
                 messageSender.text = otherUsername
                 //this.messageText.setBackgroundColor(resources.getColor(R.color.white))
                 this.itemView.setBackgroundColor(resources.getColor(R.color.white))
             }
-
             //messageDate.text = DateFormat.getDateInstance(DateFormat.LONG, Locale.ENGLISH).format(this.message.date).toString() //TODO: change in only hours
             val currentDate: Date = Date(this.message.date)
             val simpleDateFormat: SimpleDateFormat = SimpleDateFormat("dd-MM-yyyy HH:mm")
             messageDate.text = simpleDateFormat.format(currentDate)
+
+            if(this.message.type == "text"){
+                messageText.text = message.text
+            }else if(this.message.type == "file"){
+                image.maxHeight = (this.itemView.height * 0.5).toInt()
+                //image.maxWidth = (this.itemView.width * 0.5).toInt()
+                image.setImageURI(Uri.parse(message.text))
+            }
         }
 
     }
