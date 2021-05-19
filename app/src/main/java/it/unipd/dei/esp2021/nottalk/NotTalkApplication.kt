@@ -3,6 +3,8 @@ package it.unipd.dei.esp2021.nottalk
 import android.app.Application
 import android.app.NotificationChannel
 import android.app.NotificationManager
+import android.content.Intent
+import android.content.Intent.FLAG_ACTIVITY_NEW_TASK
 import android.os.Build
 import it.unipd.dei.esp2021.nottalk.util.AppNotificationManager
 
@@ -24,5 +26,16 @@ class NotTalkApplication : Application() {
             notificationManager.createNotificationChannel(channel)
         }
 
+        val sharedPref = getSharedPreferences("notTalkPref", MODE_PRIVATE)
+
+        if(sharedPref.getString("thisUsername","")!=""){
+            val intent = Intent(this,ItemDetailHostActivity::class.java)
+            intent.flags=(FLAG_ACTIVITY_NEW_TASK)
+            startActivity(intent)
+        }else{
+            val intent = Intent(this,LoginActivity::class.java)
+            intent.flags=(FLAG_ACTIVITY_NEW_TASK)
+            startActivity(intent)
+        }
     }
 }

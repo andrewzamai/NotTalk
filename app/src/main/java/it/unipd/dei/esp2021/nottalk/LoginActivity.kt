@@ -121,7 +121,7 @@ class LoginActivity : AppCompatActivity() {
             }
         }
     }
-
+/*
     override fun onStart() {
         super.onStart()
         val code = intent.extras?.getInt("requestCode")
@@ -134,6 +134,8 @@ class LoginActivity : AppCompatActivity() {
             startActivity(intent)
         }
     }
+  */
+
     /*
     override fun onBackPressed() {
         if(option!="MANDATORY") super.onBackPressed()
