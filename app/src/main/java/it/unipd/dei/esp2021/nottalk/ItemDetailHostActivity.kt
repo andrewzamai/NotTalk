@@ -5,6 +5,7 @@ import android.content.Context
 import android.content.Intent
 import android.content.SharedPreferences
 import android.os.Bundle
+import android.os.Message
 import android.util.Log
 import android.view.MenuItem
 import android.widget.Toast
@@ -30,6 +31,7 @@ import it.unipd.dei.esp2021.nottalk.remote.SyncService
  * simultaneously or separately depending on device size.
  */
 class ItemDetailHostActivity : AppCompatActivity(){
+
     companion object{
         val REQUEST_LOGIN = 10
         val REQUEST_CREATE = 11
@@ -41,8 +43,11 @@ class ItemDetailHostActivity : AppCompatActivity(){
     // toolbar
     private lateinit var toolbar: androidx.appcompat.widget.Toolbar
 
+    // navController
     private lateinit var navController: NavController
 
+    // hashMap containing "username-draftMessage" elements to not lose editText content through configuration changes, activity stop and fragment navigation
+    private var userMessagesMap: HashMap<String, String>? = null
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -68,6 +73,10 @@ class ItemDetailHostActivity : AppCompatActivity(){
             putString("uuid", "331e698e-b33e-11eb-8632-6224d93e4c38")
             */
         //}.apply()
+
+        // when re-creating the activity after destroy the useMessageMap is retrieved from savedInstanceState bundle
+        userMessagesMap = savedInstanceState?.getSerializable("userMessagesMap") as? HashMap<String, String>
+
 
         // initialize a navigation host fragment by retrieving Fragment Container View ID declared in hosting activity xml file activity_item_detail.xml
         val navHostFragment = supportFragmentManager.findFragmentById(R.id.nav_host_fragment_item_detail) as NavHostFragment
@@ -101,6 +110,7 @@ class ItemDetailHostActivity : AppCompatActivity(){
             }
         }
 
+        // to open ItemDetailFragment chat of user from notification
         intent?.let(::handleIntent)
 
         // start syncService
@@ -122,11 +132,37 @@ class ItemDetailHostActivity : AppCompatActivity(){
         }
     }
 
-    // helper methods
+
+    override fun onSaveInstanceState(outState: Bundle) {
+        super.onSaveInstanceState(outState)
+        if (!userMessagesMap.isNullOrEmpty()) {
+            outState.putSerializable("userMessagesMap", userMessagesMap)
+        }
+    }
+
+
+
+
+
+/*----------------------------------------------- HELPER FUNCTIONS -----------------------------------------------------------*/
+
+
 
     fun setToolBarTitle(title: String) {
         toolbar.title = title
     }
+
+    fun getMessageDraft(username: String): String? {
+        return userMessagesMap?.get(username)
+    }
+
+    fun saveMessageDraft(username: String, textMessage: String) {
+        if (userMessagesMap == null) {
+            userMessagesMap = HashMap()
+        }
+        userMessagesMap!!.put(username, textMessage)
+    }
+
 
     private fun handleIntent(intent: Intent) {
         when (intent.action) {

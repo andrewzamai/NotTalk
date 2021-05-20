@@ -123,8 +123,8 @@ class ItemDetailFragment : Fragment() {
 
         // retrieves editText content if in onSaveInstanceState
         // could have done it in onCreate but messageEditText reference was not yet get
-        val messageText = savedInstanceState?.getString(KEY_MESSAGE).toString()
-        if (messageText != "null") messageEditText.setText(messageText)
+        //val messageText = savedInstanceState?.getString(KEY_MESSAGE).toString()
+        //if (messageText != "null") messageEditText.setText(messageText)
 
         return rootView
     }
@@ -147,8 +147,11 @@ class ItemDetailFragment : Fragment() {
     // after a configuration change as rotation this is the right to retrieve this fragment parent activity and it's toolbar reference
     override fun onActivityCreated(savedInstanceState: Bundle?) {
         super.onActivityCreated(savedInstanceState)
-        var activity = activity as ItemDetailHostActivity
+        val activity = activity as ItemDetailHostActivity
         activity.setToolBarTitle(otherUsername)
+        // retrieves messageDraft of this chat, if any, and sets it in messageEditText
+        val messageDraft = activity.getMessageDraft(otherUsername)
+        if (messageDraft != null) messageEditText.setText(messageDraft)
     }
 
     override fun onStart() {
@@ -157,7 +160,14 @@ class ItemDetailFragment : Fragment() {
         val messageWatcher = object : TextWatcher {
             override fun beforeTextChanged(s: CharSequence?, start: Int, count: Int, after: Int) {}
             override fun onTextChanged(s: CharSequence?, start: Int, before: Int, count: Int) {}
-            override fun afterTextChanged(s: Editable?) {}
+            override fun afterTextChanged(s: Editable?) {
+                // saves messageDraft in map passed to ItemDetailsHostActivity savedInstanceState bundle
+                val activity = activity as ItemDetailHostActivity
+                val message = messageEditText.text
+                if (message!=null) {
+                    activity.saveMessageDraft(otherUsername, messageEditText.text.toString())
+                }
+            }
         }
         messageEditText.addTextChangedListener(messageWatcher)
 
@@ -171,7 +181,6 @@ class ItemDetailFragment : Fragment() {
             // clears the editText
             messageEditText.text.clear()
 
-            //TODO: salvare in persistentstate contenuto edit test nel caso di rotazione mentre sto scrivendo
         }
 
         fileButton.setOnClickListener { view ->
@@ -198,7 +207,7 @@ class ItemDetailFragment : Fragment() {
     override fun onDetach() {
         super.onDetach()
 
-        var activity = activity as ItemDetailHostActivity
+        val activity = activity as ItemDetailHostActivity
         activity.setToolBarTitle(getString(R.string.toolbar_chatLists))
     }
 
@@ -213,9 +222,12 @@ class ItemDetailFragment : Fragment() {
         super.onSaveInstanceState(outState)
         // saves editText message content in persistentState bundle
 
-
-        outState.putString(KEY_MESSAGE, messageEditText.text.toString()) //TODO: crash lateinit property messageEditText has not been initialized
-
+        //outState.putString(KEY_MESSAGE, messageEditText.text.toString()) //TODO: crash lateinit property messageEditText has not been initialized
+        val activity = activity as ItemDetailHostActivity
+        val message = messageEditText.text
+        if (message!=null) {
+            activity.saveMessageDraft(otherUsername, messageEditText.text.toString())
+        }
     }
 
     override fun onActivityResult(requestCode: Int, resultCode: Int, data: Intent?) {
@@ -271,9 +283,11 @@ class ItemDetailFragment : Fragment() {
             if(this.message.type == "text"){
                 messageText.text = message.text
             }else if(this.message.type == "file"){
-                image.maxHeight = (this.itemView.height * 0.5).toInt()
-                //image.maxWidth = (this.itemView.width * 0.5).toInt()
+                image.adjustViewBounds = true
+                image.maxHeight = 500
+                image.maxWidth = 500
                 image.setImageURI(Uri.parse(message.text))
+                Log.d("UsernameImageBug", message.fromUser)
             }
         }
 
