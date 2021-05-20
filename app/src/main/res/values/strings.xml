@@ -8,4 +8,5 @@
     <string name="pass_text_hint">Password</string>
     <string name="login_item_text">Login</string>
     <string name="create_item_text">Create</string>
+    <string name="digitSomethingHint">Write something here</string>
 </resources>

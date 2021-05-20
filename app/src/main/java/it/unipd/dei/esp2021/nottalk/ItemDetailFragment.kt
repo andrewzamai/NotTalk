@@ -21,6 +21,7 @@ import android.view.ViewGroup
 import android.widget.*
 import androidx.appcompat.app.AppCompatActivity
 import androidx.core.app.ActivityCompat
+import androidx.core.content.ContextCompat
 import androidx.lifecycle.Observer
 import androidx.lifecycle.ViewModelProvider
 import androidx.navigation.findNavController
@@ -267,13 +268,15 @@ class ItemDetailFragment : Fragment() {
 
             if(this.message.fromUser == thisUsername) {
                 messageSender.text = "You" //TODO: change hardcoded string
+                this.itemView.background = context?.let { ContextCompat.getDrawable(it, R.drawable.outgoing_message_container) }
                 //this.messageText.setBackgroundColor(resources.getColor(R.color.teal_200))
-                this.itemView.setBackgroundColor(resources.getColor(R.color.teal_200))
+                //this.itemView.setBackgroundColor(resources.getColor(R.color.teal_200))
                 //messageText.textAlignment = View.TEXT_ALIGNMENT_VIEW_END //TODO: justify right
             } else{
                 messageSender.text = otherUsername
+                this.itemView.background = context?.let { ContextCompat.getDrawable(it, R.drawable.incoming_message_container) }
                 //this.messageText.setBackgroundColor(resources.getColor(R.color.white))
-                this.itemView.setBackgroundColor(resources.getColor(R.color.white))
+                //this.itemView.setBackgroundColor(resources.getColor(R.color.white))
             }
             //messageDate.text = DateFormat.getDateInstance(DateFormat.LONG, Locale.ENGLISH).format(this.message.date).toString() //TODO: change in only hours
             val currentDate: Date = Date(this.message.date)
@@ -282,7 +285,9 @@ class ItemDetailFragment : Fragment() {
 
             if(this.message.type == "text"){
                 messageText.text = message.text
+                
             }else if(this.message.type == "file"){
+                messageText.text = ""
                 image.adjustViewBounds = true
                 image.maxHeight = 500
                 image.maxWidth = 500

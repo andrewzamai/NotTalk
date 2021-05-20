@@ -3,38 +3,45 @@
     xmlns:app="http://schemas.android.com/apk/res-auto"
     xmlns:tools="http://schemas.android.com/tools"
     android:layout_width="match_parent"
-    android:layout_height="match_parent">
+    android:layout_height="match_parent"
+    android:layout_gravity="center_horizontal">
 
-    <EditText
-        android:id="@+id/username_text"
-        android:hint="@string/user_text_hint"
-        android:inputType="text"
-        android:layout_width="183dp"
-        android:layout_height="60dp"
-        android:layout_marginTop="148dp"
-        app:layout_constraintBottom_toTopOf="@+id/password_text"
+
+    <LinearLayout
+        android:id="@+id/username_pass"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:gravity="center_vertical"
+        android:orientation="vertical"
+        app:layout_constraintTop_toTopOf="parent"
         app:layout_constraintEnd_toEndOf="parent"
         app:layout_constraintStart_toStartOf="parent"
-        app:layout_constraintTop_toTopOf="parent"
-        app:layout_constraintVertical_bias="1.0" />
+        app:layout_constraintBottom_toTopOf="@id/login_button">
 
-    <EditText
-        android:id="@+id/password_text"
-        android:hint="@string/pass_text_hint"
-        android:inputType="textPassword"
-        android:layout_width="183dp"
-        android:layout_height="51dp"
-        android:layout_marginBottom="52dp"
-        app:layout_constraintBottom_toTopOf="@+id/login_button"
-        app:layout_constraintEnd_toEndOf="parent"
-        app:layout_constraintStart_toStartOf="parent" />
+        
+        <EditText
+            android:id="@+id/username_text"
+            android:layout_width="184dp"
+            android:layout_height="60dp"
+            android:hint="@string/user_text_hint"
+            android:inputType="text" />
+
+        <EditText
+            android:id="@+id/password_text"
+            android:layout_width="184dp"
+            android:layout_height="60dp"
+            android:hint="@string/pass_text_hint"
+            android:inputType="textPassword" />
+
+    </LinearLayout>
+
 
     <Button
         android:id="@+id/login_button"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
-        android:layout_marginBottom="304dp"
         android:text="@string/button_login_text"
+        app:layout_constraintTop_toBottomOf="@id/username_pass"
         app:layout_constraintBottom_toBottomOf="parent"
         app:layout_constraintEnd_toEndOf="parent"
         app:layout_constraintStart_toStartOf="parent" />
