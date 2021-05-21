@@ -6,10 +6,6 @@
     android:id="@+id/container"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
-    android:paddingLeft="2dp"
-    android:paddingRight="2dp"
-    android:paddingTop="2dp"
-    android:paddingBottom="2dp"
     android:orientation="vertical"
     android:gravity="center"
     android:weightSum="10">
@@ -23,7 +19,8 @@
         android:minHeight="?attr/actionBarSize"
         android:theme="?attr/actionBarTheme"
         android:layout_gravity="center_vertical"
-        android:layout_weight="0.9"/>
+        android:layout_weight="0.9"
+        android:backgroundTint="@color/light_gray"/>
 
     <!--Declaring a Fragment Container View in ItemDetailHostActivity layout: an empty container where destination fragments are swapped in and out as a user navigates through the app
         setted as DefaultNavHost, using specified navGraph path, tools:layout to show item_detail_fragment in app developing as placeholder-->
