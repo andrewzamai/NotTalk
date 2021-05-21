@@ -9,3 +9,4 @@ import androidx.room.PrimaryKey
 data class User(@ColumnInfo(name = "username") val username: String){
     @PrimaryKey(autoGenerate = true) var id: Int? = null
 }
+

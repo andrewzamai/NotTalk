@@ -133,9 +133,10 @@ class ItemListFragment : Fragment() {
                         }
                         else if(result){
                             if(doesExist){
-                                Toast.makeText(context, "User already in database", Toast.LENGTH_LONG).show()
+                                Toast.makeText(context, "User updated", Toast.LENGTH_LONG).show()
                             }
                             else repo.insertUser(User(username))
+                            repo.createRelation(username)
                         }
                     }
                 }

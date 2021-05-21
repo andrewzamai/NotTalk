@@ -1,6 +1,7 @@
 package it.unipd.dei.esp2021.nottalk
 
 import android.annotation.SuppressLint
+import android.app.Service
 import android.content.Context
 import android.content.Intent
 import android.net.Uri
@@ -15,6 +16,7 @@ import androidx.sqlite.db.SupportSQLiteDatabase
 import it.unipd.dei.esp2021.nottalk.database.ChatDatabase
 import it.unipd.dei.esp2021.nottalk.database.Message
 import it.unipd.dei.esp2021.nottalk.database.User
+import it.unipd.dei.esp2021.nottalk.database.UserRelation
 import it.unipd.dei.esp2021.nottalk.remote.ServerAdapter
 import java.io.InputStream
 import java.lang.IllegalStateException
@@ -60,17 +62,23 @@ class NotTalkRepository private constructor(context: Context){
 
     // reference to an UserDao instance
     private val userDao = database.userDao()
+    // reference to a UserRelationDao instance
+    private val userRelation = database.userRelationDao()
     // reference to a MessageDao instance
     private val messageDao = database.messageDao()
 
     // single thread executor to perform functions as insert in database which needs not to stop the main (UI) thread
     private val executor = Executors.newSingleThreadExecutor()
 
+    private val sharedPreferences = context.getSharedPreferences("notTalkPref", Service.MODE_PRIVATE)
+
 
 
 // UserDao adapter functions
 
-    fun getAllUsers(): LiveData<List<User>> = userDao.all // liveData enables to notify an observer about changes in the list
+    //fun getAllUsers(): LiveData<List<User>> = userDao.all // liveData enables to notify an observer about changes in the list
+    fun getAllUsers(): LiveData<List<User>> = userRelation.get(
+            sharedPreferences.getString("thisUsername","")?:"")
 
     fun insertUser(user: User) {
         executor.execute {
@@ -81,6 +89,24 @@ class NotTalkRepository private constructor(context: Context){
     fun checkUser(username: String): Boolean{
         return userDao.doesExist(username)
 
+    }
+
+    fun createRelation(otherUsername: String){
+        executor.execute {
+            val thisUsername = sharedPreferences.getString("thisUsername","")?:""
+            if(thisUsername!=""){
+                userRelation.insert(UserRelation(thisUsername,otherUsername))
+            }
+        }
+    }
+
+    fun removeRelation(otherUsername: String){
+        executor.execute {
+            val thisUsername = sharedPreferences.getString("thisUsername","")?:""
+            if(thisUsername!=""){
+                userRelation.delete(UserRelation(thisUsername,otherUsername))
+            }
+        }
     }
 
     fun insertMessages(messages: List<Message>) {
@@ -128,7 +154,7 @@ class NotTalkRepository private constructor(context: Context){
         }).start()
     }
 
-    fun sendFileMessage(context: Context, uri: Uri, username: String, uuid: String, toUser: String){
+    fun sendFileMessage(context: Context, uri: Uri, thisUsername: String, uuid: String, otherUsername: String){
         Thread(Runnable {
             val contentResolver = context.contentResolver
             contentResolver.takePersistableUriPermission(uri, Intent.FLAG_GRANT_READ_URI_PERMISSION)
@@ -142,16 +168,16 @@ class NotTalkRepository private constructor(context: Context){
             }
             val content = Base64.encodeToString(fileInStream.readBytes(), Base64.DEFAULT)
             val result = server.sendFileMsg(
-                username,
+                thisUsername,
                 uuid,
-                toUser,
+                otherUsername,
                 date,
                 content,
                 mimetype!!,
                 filename!!
             )
             if (result == "ok") {
-                val msg = Message(username, toUser, date, "file", uri.toString())
+                val msg = Message(otherUsername, thisUsername, date, "file", uri.toString())
                 msg.fileName = filename!!
                 msg.mimeType = mimetype!!
                 messageDao.insert(msg)

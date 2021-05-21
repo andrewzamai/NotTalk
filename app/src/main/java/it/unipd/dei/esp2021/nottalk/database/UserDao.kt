@@ -20,11 +20,14 @@ interface UserDao {
     @Query("SELECT EXISTS(SELECT * FROM user WHERE username = :username)")
     fun doesExist(username : String) : Boolean
 
-    @Insert
+    @Insert(onConflict = OnConflictStrategy.IGNORE)
     fun insertAll(bills: List<User>)
 
     @Insert(onConflict = OnConflictStrategy.IGNORE)
     fun insert(bill: User)
+
+    @Query("DELETE FROM user WHERE username = :username")
+    fun deleteUser(username: String)
 
     @Delete
     fun delete(bill: User)
