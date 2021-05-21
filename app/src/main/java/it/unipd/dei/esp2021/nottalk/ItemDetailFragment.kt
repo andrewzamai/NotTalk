@@ -1,44 +1,29 @@
 package it.unipd.dei.esp2021.nottalk
 
-import android.app.ActionBar
-import android.app.ActionBar.DISPLAY_SHOW_TITLE
 import android.app.Activity
 import android.content.Context
 import android.content.Context.MODE_PRIVATE
 import android.content.Intent
-import android.content.res.Resources
-import android.media.Image
 import android.net.Uri
 import android.os.Bundle
 import android.text.Editable
 import android.text.TextWatcher
 import android.util.Log
 import androidx.fragment.app.Fragment
-import com.google.android.material.appbar.CollapsingToolbarLayout
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
 import android.widget.*
-import androidx.appcompat.app.AppCompatActivity
-import androidx.core.app.ActivityCompat
 import androidx.core.content.ContextCompat
 import androidx.lifecycle.Observer
 import androidx.lifecycle.ViewModelProvider
-import androidx.navigation.findNavController
 import androidx.recyclerview.widget.LinearLayoutManager
 import androidx.recyclerview.widget.RecyclerView
 import it.unipd.dei.esp2021.nottalk.database.FileManager
 import it.unipd.dei.esp2021.nottalk.database.Message
-import it.unipd.dei.esp2021.nottalk.database.User
-import it.unipd.dei.esp2021.nottalk.databinding.FragmentItemDetailBinding
-import it.unipd.dei.esp2021.nottalk.databinding.ItemChatContentBinding
-import it.unipd.dei.esp2021.nottalk.databinding.ItemListContentBinding
-import java.lang.String.format
-import java.text.DateFormat
+import it.unipd.dei.esp2021.nottalk.databinding.*
+import it.unipd.dei.esp2021.nottalk.util.PlayerService
 import java.text.SimpleDateFormat
-import java.time.LocalDate
-import java.time.LocalDateTime
-import java.time.format.DateTimeFormatter
 import java.util.*
 
 /**
@@ -249,19 +234,22 @@ class ItemDetailFragment : Fragment() {
 
     companion object {
         // The fragment argument representing the item ID that this fragment represents.
-        const val ARG_ITEM_ID = "item_id"
-        private const val KEY_MESSAGE = "textmessage"
+        const val ARG_ITEM_ID = "item_id" // to pass otherUsername as argument from itemList fragment to this fragment
+
+        // constants used to inflate correct layout in chatRecycler view depending on content type and mimeType
+        const val TEXT_MESSAGE = 2
+        const val IMAGE_MESSAGE = 4
+        const val AUDIO_MESSAGE = 6
     }
 
     // inner classes MessageHolder and ChatAdapter for ChatRecyclerView
 
-    private inner class MessageHolder(binding: ItemChatContentBinding) : RecyclerView.ViewHolder(binding.root) {
-        // TODO: display better item_content_chat layout
+    private inner class MessageHolderText(binding: ItemChatContentBinding) : RecyclerView.ViewHolder(binding.root) {
+
         private lateinit var message: Message // stores a reference to the Message object
         private val messageText: TextView = binding.messageSlot //stores reference to textview field
         private val messageSender: TextView = binding.messageSender
         private val messageDate: TextView = binding.messageDate
-        private val image: ImageView = binding.imageView
 
         fun bind(message: Message){
             this.message = message
@@ -269,46 +257,159 @@ class ItemDetailFragment : Fragment() {
             if(this.message.fromUser == thisUsername) {
                 messageSender.text = "You" //TODO: change hardcoded string
                 this.itemView.background = context?.let { ContextCompat.getDrawable(it, R.drawable.outgoing_message_container) }
-                //this.messageText.setBackgroundColor(resources.getColor(R.color.teal_200))
-                //this.itemView.setBackgroundColor(resources.getColor(R.color.teal_200))
                 //messageText.textAlignment = View.TEXT_ALIGNMENT_VIEW_END //TODO: justify right
             } else{
                 messageSender.text = otherUsername
                 this.itemView.background = context?.let { ContextCompat.getDrawable(it, R.drawable.incoming_message_container) }
-                //this.messageText.setBackgroundColor(resources.getColor(R.color.white))
-                //this.itemView.setBackgroundColor(resources.getColor(R.color.white))
             }
-            //messageDate.text = DateFormat.getDateInstance(DateFormat.LONG, Locale.ENGLISH).format(this.message.date).toString() //TODO: change in only hours
-            val currentDate: Date = Date(this.message.date)
-            val simpleDateFormat: SimpleDateFormat = SimpleDateFormat("dd-MM-yyyy HH:mm")
+
+            val currentDate = Date(this.message.date)
+            val simpleDateFormat = SimpleDateFormat("dd-MM-yyyy HH:mm")
             messageDate.text = simpleDateFormat.format(currentDate)
 
-            if(this.message.type == "text"){
-                messageText.text = message.text
-                
-            }else if(this.message.type == "file"){
-                messageText.text = ""
-                image.adjustViewBounds = true
-                image.maxHeight = 500
-                image.maxWidth = 500
-                image.setImageURI(Uri.parse(message.text))
-                Log.d("UsernameImageBug", message.fromUser)
-            }
+            messageText.text = message.text
+
         }
 
     }
 
-    // takes a list of messages and populates the recycler
-    private inner class ChatAdapter(var messages: List<Message>) : RecyclerView.Adapter<MessageHolder>() {
+    private inner class MessageHolderImage(binding: ImageItemChatContentBinding) : RecyclerView.ViewHolder(binding.root) {
 
-        override fun onCreateViewHolder(parent: ViewGroup, viewType: Int): MessageHolder {
-            val binding = ItemChatContentBinding.inflate(LayoutInflater.from(parent.context), parent, false)
-            return MessageHolder(binding)
+        private lateinit var message: Message // stores a reference to the Message object
+        private val messageSender: TextView = binding.messageSender
+        private val messageDate: TextView = binding.messageDate
+        private val image: ImageView = binding.image
+
+        fun bind(message: Message){
+            this.message = message
+
+            if(this.message.fromUser == thisUsername) {
+                messageSender.text = "You" //TODO: change hardcoded string
+                this.itemView.background = context?.let { ContextCompat.getDrawable(it, R.drawable.outgoing_message_container) }
+                //messageText.textAlignment = View.TEXT_ALIGNMENT_VIEW_END //TODO: justify right
+            } else{
+                messageSender.text = otherUsername
+                this.itemView.background = context?.let { ContextCompat.getDrawable(it, R.drawable.incoming_message_container) }
+            }
+
+            val currentDate = Date(this.message.date)
+            val simpleDateFormat = SimpleDateFormat("dd-MM-yyyy HH:mm")
+            messageDate.text = simpleDateFormat.format(currentDate)
+
+            image.adjustViewBounds = true
+            image.maxHeight = 500
+            image.maxWidth = 500
+            image.setImageURI(Uri.parse(message.text))
+            Log.d("UsernameImageBug", message.fromUser)
+
         }
 
-        override fun onBindViewHolder(holder: MessageHolder, position: Int) {
-            val item = messages[position]
-            holder.bind(item)
+    }
+
+
+    private inner class MessageHolderAudio(binding: AudioItemChatContentBinding) : RecyclerView.ViewHolder(binding.root) {
+
+        private lateinit var message: Message // stores a reference to the Message object
+        private val messageSender: TextView = binding.messageSender
+        private val messageDate: TextView = binding.messageDate
+        private val playButton: ImageButton = binding.playButton
+        private val stopButton: ImageButton = binding.stopButton
+
+        fun bind(message: Message){
+            this.message = message
+
+            if(this.message.fromUser == thisUsername) {
+                messageSender.text = "You" //TODO: change hardcoded string
+                this.itemView.background = context?.let { ContextCompat.getDrawable(it, R.drawable.outgoing_message_container) }
+                //messageText.textAlignment = View.TEXT_ALIGNMENT_VIEW_END //TODO: justify right
+            } else{
+                messageSender.text = otherUsername
+                this.itemView.background = context?.let { ContextCompat.getDrawable(it, R.drawable.incoming_message_container) }
+            }
+
+            val currentDate = Date(this.message.date)
+            val simpleDateFormat = SimpleDateFormat("dd-MM-yyyy HH:mm")
+            messageDate.text = simpleDateFormat.format(currentDate)
+        }
+
+        init{
+            playButton.setOnClickListener {
+                Log.d("PlayService", "Play Button pressed")
+                Log.d("PlayService", message.text)
+                val intent = Intent(activity!!.applicationContext, PlayerService::class.java)
+                intent.putExtra(PlayerService.PLAY_START, true)
+                intent.putExtra(PlayerService.URI_PATH, message.text)
+                activity!!.startService(intent)
+            }
+
+            stopButton.setOnClickListener {
+                Log.d("PlayService", "Stop Button pressed")
+                val intent = Intent(activity!!.applicationContext, PlayerService::class.java)
+                activity!!.applicationContext.stopService(intent)
+            }
+
+        }
+
+    }
+
+
+    // takes a list of messages and populates the recycler
+    private inner class ChatAdapter(var messages: List<Message>) : RecyclerView.Adapter<RecyclerView.ViewHolder>() {
+
+        override fun getItemViewType(position: Int): Int {
+
+            if (messages[position].type == "text") {
+                return TEXT_MESSAGE
+            }
+            else if (messages[position].type == "file") {
+                if (messages[position].mimeType!!.split("/")[0] == "image")
+                    return IMAGE_MESSAGE
+                else if (messages[position].mimeType!!.split("/")[0] == "audio")
+                    return AUDIO_MESSAGE
+            }
+
+            return TEXT_MESSAGE // default
+        }
+
+
+        override fun onCreateViewHolder(parent: ViewGroup, viewType: Int): RecyclerView.ViewHolder {
+
+            when (viewType) {
+
+                TEXT_MESSAGE -> {
+                    val binding = ItemChatContentBinding.inflate(LayoutInflater.from(parent.context), parent, false)
+                    return MessageHolderText(binding)
+                }
+                IMAGE_MESSAGE -> {
+                    val binding = ImageItemChatContentBinding.inflate(LayoutInflater.from(parent.context), parent, false)
+                    return MessageHolderImage(binding)
+                }
+                else -> {
+                    val binding = AudioItemChatContentBinding.inflate(LayoutInflater.from(parent.context), parent, false)
+                    return MessageHolderAudio(binding)
+                }
+            }
+
+        }
+
+
+        override fun onBindViewHolder(holder: RecyclerView.ViewHolder, position: Int) {
+
+            when (getItemViewType(position)) {
+
+                TEXT_MESSAGE -> {
+                    val holderText = holder as MessageHolderText
+                    holderText.bind(messages[position])
+                }
+                IMAGE_MESSAGE -> {
+                    val holderImage = holder as MessageHolderImage
+                    holderImage.bind(messages[position])
+                }
+                else -> {
+                    val holderAudio = holder as MessageHolderAudio
+                    holderAudio.bind(messages[position])
+                }
+            }
         }
 
         override fun getItemCount(): Int {
@@ -317,9 +418,12 @@ class ItemDetailFragment : Fragment() {
 
     }
 
+
     // called in OnViewCreated to refresh the recycler list
     private fun updateUI(messages: List<Message>){
         adapter = ChatAdapter(messages)
         chatRecyclerView.adapter = adapter
     }
+
+
 }
