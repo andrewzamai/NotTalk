@@ -14,6 +14,7 @@ import it.unipd.dei.esp2021.nottalk.remote.ServerAdapter
 import java.util.concurrent.Executors
 
 class LoginActivity : AppCompatActivity() {
+    private var code: Int? = null
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         setContentView(R.layout.login_activity)
@@ -22,7 +23,7 @@ class LoginActivity : AppCompatActivity() {
         val loginButton = findViewById<Button>(R.id.login_button)
         val registerButton = findViewById<Button>(R.id.register_button)
         val backgroundExecutor = Executors.newSingleThreadScheduledExecutor()
-        val code = intent.extras?.getInt("requestCode")
+        code = intent.extras?.getInt("requestCode")
 
 
         loginButton.setOnClickListener { view ->
@@ -97,10 +98,10 @@ class LoginActivity : AppCompatActivity() {
         }
     }
     override fun onBackPressed() {
-        if(true) super.onBackPressed()
-        else {
+        if (code == ItemDetailHostActivity.REQUEST_MUST_LOGIN){
             setResult(Activity.RESULT_CANCELED)
             finish()
         }
+        super.onBackPressed()
     }
 }

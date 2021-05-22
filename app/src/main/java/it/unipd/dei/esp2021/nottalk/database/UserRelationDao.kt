@@ -14,6 +14,9 @@ interface UserRelationDao {
     @Query("DELETE FROM userRelation WHERE thisUser = :thisUser")
     fun deleteAllByThisUser(thisUser: String)
 
+    @Query("DELETE from userRelation WHERE otherUser = :otherUser")
+    fun deleteAllByOtherUser(otherUser: String)
+
     @Delete
     fun delete(bill: UserRelation)
 }

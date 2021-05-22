@@ -42,6 +42,7 @@ class NotTalkRepository private constructor(context: Context){
         ChatDatabase::class.java,
         DATABASE_NAME
     )   .addCallback(ChatDatabaseCallback())
+        .fallbackToDestructiveMigration()
         .build()
 
     private class ChatDatabaseCallback(): RoomDatabase.Callback(){
@@ -77,8 +78,10 @@ class NotTalkRepository private constructor(context: Context){
 // UserDao adapter functions
 
     //fun getAllUsers(): LiveData<List<User>> = userDao.all // liveData enables to notify an observer about changes in the list
-    fun getAllUsers(): LiveData<List<User>> = userRelation.get(
-            sharedPreferences.getString("thisUsername","")?:"")
+    fun getAllUsers(username: String): LiveData<List<User>> {
+        val list = userRelation.get(username)
+        return list
+    }
 
     fun insertUser(user: User) {
         executor.execute {
@@ -88,7 +91,12 @@ class NotTalkRepository private constructor(context: Context){
 
     fun checkUser(username: String): Boolean{
         return userDao.doesExist(username)
+    }
 
+    fun deleteUser(username: String){
+        executor.execute {
+            userDao.deleteUser(username)
+        }
     }
 
     fun createRelation(otherUsername: String){
@@ -188,6 +196,30 @@ class NotTalkRepository private constructor(context: Context){
     // to delete a message from the database
     fun deleteMessage(message: Message){
         messageDao.delete(message)
+    }
+
+    fun deleteByUserTo(toUser: String){
+        executor.execute {
+            messageDao.deleteByUserTo(toUser)
+        }
+    }
+
+    fun deleteByUserFrom(fromUser: String){
+        executor.execute {
+            messageDao.deleteByUserFrom(fromUser)
+        }
+    }
+
+    fun deleteRelationsByThisUser(username: String){
+        executor.execute {
+            userRelation.deleteAllByThisUser(username)
+        }
+    }
+
+    fun deleteRelationsByOtherUser(username: String){
+        executor.execute {
+            userRelation.deleteAllByOtherUser(username)
+        }
     }
 
 

@@ -15,6 +15,8 @@ import android.widget.Toolbar
 import androidx.appcompat.app.AppCompatActivity
 import androidx.fragment.app.FragmentManager
 import androidx.fragment.app.commit
+import androidx.lifecycle.LiveData
+import androidx.lifecycle.MutableLiveData
 import androidx.lifecycle.ViewModelProvider
 import androidx.navigation.NavController
 import androidx.navigation.findNavController
@@ -39,6 +41,8 @@ class ItemDetailHostActivity : AppCompatActivity(){
     companion object{
         val REQUEST_LOGIN = 10
         val REQUEST_MUST_LOGIN = 11
+
+        val currentUsername = MutableLiveData<String>()
     }
 
     // reference to sharedPreferences
@@ -65,12 +69,15 @@ class ItemDetailHostActivity : AppCompatActivity(){
         // saves in sharedPreferences this user's username
         // TODO: change from hardcoded username admin in username specified from user when registering
         sharedPref = getSharedPreferences("notTalkPref", MODE_PRIVATE)
-        with (sharedPref.edit()) {
-            if (sharedPref.getString("thisUsername", "") == "") {
-                putString("thisUsername", "admin")
-                putString("uuid", "331e698e-b33e-11eb-8632-6224d93e4c38")
-                apply()
-            }
+        if (sharedPref.getString("thisUsername", "") == "") {
+            Toast.makeText(applicationContext,"Please log in",Toast.LENGTH_LONG).show()
+            val intent = Intent(this, LoginActivity::class.java)
+            intent.putExtra("requestCode", REQUEST_MUST_LOGIN)
+            startActivityForResult(intent, REQUEST_MUST_LOGIN)
+        }
+        else {
+            applicationContext.startService(Intent(this, SyncService::class.java))
+            currentUsername.value= sharedPref.getString("thisUsername","")
         }
             /*
             putString("thisUsername", "admin")
@@ -120,10 +127,11 @@ class ItemDetailHostActivity : AppCompatActivity(){
                             val result = sa.deleteUser(username!!,uuid!!)
                             if(result=="ok") {
                                 applicationContext.stopService(Intent(this, SyncService::class.java))
-                                if(repo.checkUser(username)){
-                                    //repo.deleteUser(username)
-                                }
-                                //repo.deleteByUserTo(username)
+                                repo.deleteUser(username)
+                                repo.deleteByUserTo(username)
+                                repo.deleteByUserFrom(username)
+                                repo.deleteRelationsByOtherUser(username)
+                                repo.deleteRelationsByThisUser(username)
                                 val ep = sp1.edit()
                                 ep.putString("thisUsername", "")
                                 ep.putString("uuid", "")
@@ -132,8 +140,9 @@ class ItemDetailHostActivity : AppCompatActivity(){
                                     Toast.makeText(applicationContext,"User deleted successfully",Toast.LENGTH_LONG).show()
                                 }
                                 val intent = Intent(this, LoginActivity::class.java)
-                                finish()
-                                startActivity(intent)
+                                intent.putExtra("requestCode", REQUEST_MUST_LOGIN)
+                                startActivityForResult(intent, REQUEST_MUST_LOGIN)
+                                true
                             }
                             else{
                                 mainExecutor.execute {
@@ -175,6 +184,7 @@ class ItemDetailHostActivity : AppCompatActivity(){
         if(resultCode == Activity.RESULT_OK && (requestCode == REQUEST_LOGIN || requestCode == REQUEST_MUST_LOGIN)){
             val username = data?.getStringExtra("username")
             val uuid = data?.getStringExtra("uuid")
+            currentUsername.value=username!!
             sharedPref = getSharedPreferences("notTalkPref", MODE_PRIVATE)
             with (sharedPref.edit()){
                 putString("thisUsername", username)
@@ -182,7 +192,7 @@ class ItemDetailHostActivity : AppCompatActivity(){
             }.commit()
             applicationContext.startService(Intent(this, SyncService::class.java))
         }
-        if(resultCode == Activity.RESULT_CANCELED && (requestCode == REQUEST_LOGIN || requestCode == REQUEST_MUST_LOGIN)){
+        if(resultCode == Activity.RESULT_CANCELED && requestCode == REQUEST_MUST_LOGIN){
             finish()
         }
     }
