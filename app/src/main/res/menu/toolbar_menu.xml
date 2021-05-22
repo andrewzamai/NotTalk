@@ -6,7 +6,11 @@
         android:title="@string/login_item_text"
         app:showAsAction="never"/>
     <item
-        android:id="@+id/create_item"
-        android:title="@string/create_item_text"
+        android:id="@+id/logout_item"
+        android:title="@string/logout_item_text"
+        app:showAsAction="never"/>
+    <item
+        android:id="@+id/delete_item"
+        android:title="@string/delete_item_text"
         app:showAsAction="never"/>
 </menu>
