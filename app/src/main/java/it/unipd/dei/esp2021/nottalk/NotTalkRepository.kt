@@ -79,8 +79,7 @@ class NotTalkRepository private constructor(context: Context){
 
     //fun getAllUsers(): LiveData<List<User>> = userDao.all // liveData enables to notify an observer about changes in the list
     fun getAllUsers(username: String): LiveData<List<User>> {
-        val list = userRelation.get(username)
-        return list
+        return userRelation.get(username)
     }
 
     fun insertUser(user: User) {
@@ -108,6 +107,12 @@ class NotTalkRepository private constructor(context: Context){
         }
     }
 
+    fun insertRelation(ur: UserRelation){
+        executor.execute {
+            userRelation.insert(ur)
+        }
+    }
+
     fun removeRelation(otherUsername: String){
         executor.execute {
             val thisUsername = sharedPreferences.getString("thisUsername","")?:""
@@ -115,6 +120,10 @@ class NotTalkRepository private constructor(context: Context){
                 userRelation.delete(UserRelation(thisUsername,otherUsername))
             }
         }
+    }
+
+    fun existsRelation(thisUsername: String, otherUsername: String): Boolean {
+        return userRelation.existsRelation(thisUsername,otherUsername)
     }
 
     fun insertMessages(messages: List<Message>) {

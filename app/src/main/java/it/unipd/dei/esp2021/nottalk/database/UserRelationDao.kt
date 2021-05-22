@@ -7,6 +7,9 @@ import androidx.room.*
 interface UserRelationDao {
     @Query("SELECT * FROM user WHERE username IN (SELECT otherUser FROM userRelation WHERE thisUser = :thisUser)")
     fun get(thisUser: String): LiveData<List<User>>
+
+    @Query("SELECT EXISTS(SELECT * FROM userRelation WHERE thisUser = :thisUser AND otherUser = :otherUser)")
+    fun existsRelation(thisUser: String, otherUser: String): Boolean
     
     @Insert(onConflict = OnConflictStrategy.IGNORE)
     fun insert(bill: UserRelation)

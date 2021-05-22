@@ -99,7 +99,13 @@ class ItemDetailHostActivity : AppCompatActivity(){
         toolbar = binding.toolbar // gets reference
         val appBarConfiguration: AppBarConfiguration = AppBarConfiguration(navController.graph)
         toolbar.setupWithNavController(navController, appBarConfiguration)
-        toolbar.inflateMenu(R.menu.toolbar_menu)
+        //toolbar.inflateMenu(R.menu.toolbar_menu)
+        navController.addOnDestinationChangedListener { _, destination, _ ->
+            if(destination.id == R.id.fragment_item_detail || destination.id == R.id.item_detail_fragment){
+                toolbar.menu.clear()
+            }
+            else toolbar.inflateMenu(R.menu.toolbar_menu)
+        }
         toolbar.title = getString(R.string.toolbar_chatLists)
         toolbar.setOnMenuItemClickListener { item ->
             when (item.itemId) {
