@@ -1,7 +1,9 @@
 package it.unipd.dei.esp2021.nottalk
 
 import android.app.Activity
+import android.app.AlertDialog
 import android.content.Context
+import android.content.DialogInterface
 import android.content.Intent
 import android.content.SharedPreferences
 import android.os.Bundle
@@ -13,6 +15,8 @@ import android.widget.Toolbar
 import androidx.appcompat.app.AppCompatActivity
 import androidx.fragment.app.FragmentManager
 import androidx.fragment.app.commit
+import androidx.lifecycle.LiveData
+import androidx.lifecycle.MutableLiveData
 import androidx.lifecycle.ViewModelProvider
 import androidx.navigation.NavController
 import androidx.navigation.findNavController
@@ -24,6 +28,7 @@ import androidx.navigation.ui.setupActionBarWithNavController
 import androidx.navigation.ui.setupWithNavController
 import it.unipd.dei.esp2021.nottalk.database.FileManager
 import it.unipd.dei.esp2021.nottalk.databinding.ActivityItemDetailBinding
+import it.unipd.dei.esp2021.nottalk.remote.ServerAdapter
 import it.unipd.dei.esp2021.nottalk.remote.SyncService
 import it.unipd.dei.esp2021.nottalk.util.PlayerService
 
@@ -35,7 +40,9 @@ class ItemDetailHostActivity : AppCompatActivity(){
 
     companion object{
         val REQUEST_LOGIN = 10
-        val REQUEST_CREATE = 11
+        val REQUEST_MUST_LOGIN = 11
+
+        val currentUsername = MutableLiveData<String>()
     }
 
     // reference to sharedPreferences
@@ -62,12 +69,15 @@ class ItemDetailHostActivity : AppCompatActivity(){
         // saves in sharedPreferences this user's username
         // TODO: change from hardcoded username admin in username specified from user when registering
         sharedPref = getSharedPreferences("notTalkPref", MODE_PRIVATE)
-        with (sharedPref.edit()) {
-            if (sharedPref.getString("thisUsername", "") == "") {
-                putString("thisUsername", "admin")
-                putString("uuid", "331e698e-b33e-11eb-8632-6224d93e4c38")
-                apply()
-            }
+        if (sharedPref.getString("thisUsername", "") == "") {
+            Toast.makeText(applicationContext,"Please log in",Toast.LENGTH_LONG).show()
+            val intent = Intent(this, LoginActivity::class.java)
+            intent.putExtra("requestCode", REQUEST_MUST_LOGIN)
+            startActivityForResult(intent, REQUEST_MUST_LOGIN)
+        }
+        else {
+            applicationContext.startService(Intent(this, SyncService::class.java))
+            currentUsername.value= sharedPref.getString("thisUsername","")
         }
             /*
             putString("thisUsername", "admin")
@@ -89,7 +99,13 @@ class ItemDetailHostActivity : AppCompatActivity(){
         toolbar = binding.toolbar // gets reference
         val appBarConfiguration: AppBarConfiguration = AppBarConfiguration(navController.graph)
         toolbar.setupWithNavController(navController, appBarConfiguration)
-        toolbar.inflateMenu(R.menu.toolbar_menu)
+        //toolbar.inflateMenu(R.menu.toolbar_menu)
+        navController.addOnDestinationChangedListener { _, destination, _ ->
+            if(destination.id == R.id.fragment_item_detail || destination.id == R.id.item_detail_fragment){
+                toolbar.menu.clear()
+            }
+            else toolbar.inflateMenu(R.menu.toolbar_menu)
+        }
         toolbar.title = getString(R.string.toolbar_chatLists)
         toolbar.setOnMenuItemClickListener { item ->
             when (item.itemId) {
@@ -100,11 +116,61 @@ class ItemDetailHostActivity : AppCompatActivity(){
                     startActivityForResult(intent, REQUEST_LOGIN)
                     true
                 }
-                R.id.create_item -> {
+                R.id.delete_item -> {
                     applicationContext.stopService(Intent(this, SyncService::class.java))
+                    val backgroundExecutor = Executors.newSingleThreadScheduledExecutor()
+                    val sp1 = getSharedPreferences("notTalkPref", MODE_PRIVATE)
+                    val username = sp1.getString("thisUsername", "")
+                    val uuid = sp1.getString("uuid", "")
+                    val alert = AlertDialog.Builder(this)
+                    alert.setTitle("Delete user")
+                    alert.setMessage("Are you sure to delete $username")
+                    alert.setPositiveButton("Yes", DialogInterface.OnClickListener { dialog, whichButton ->
+                        // Do something with value!
+                        backgroundExecutor.execute{
+                            val repo = NotTalkRepository.get()
+                            val sa = ServerAdapter()
+                            val result = sa.deleteUser(username!!,uuid!!)
+                            if(result=="ok") {
+                                applicationContext.stopService(Intent(this, SyncService::class.java))
+                                repo.deleteUser(username)
+                                repo.deleteByUserTo(username)
+                                repo.deleteByUserFrom(username)
+                                repo.deleteRelationsByOtherUser(username)
+                                repo.deleteRelationsByThisUser(username)
+                                val ep = sp1.edit()
+                                ep.putString("thisUsername", "")
+                                ep.putString("uuid", "")
+                                ep.commit()
+                                mainExecutor.execute {
+                                    Toast.makeText(applicationContext,"User deleted successfully",Toast.LENGTH_LONG).show()
+                                }
+                                val intent = Intent(this, LoginActivity::class.java)
+                                intent.putExtra("requestCode", REQUEST_MUST_LOGIN)
+                                startActivityForResult(intent, REQUEST_MUST_LOGIN)
+                                true
+                            }
+                            else{
+                                mainExecutor.execute {
+                                    Toast.makeText(applicationContext,"Failed to delete user",Toast.LENGTH_LONG).show()
+                                }
+                            }
+                        }
+                    })
+                    alert.setNegativeButton("No") { _, _ -> }
+                    alert.show()
+                    true
+                }
+                R.id.logout_item -> {
+                    applicationContext.stopService(Intent(this, SyncService::class.java))
+                    val sp1 = getSharedPreferences("notTalkPref", MODE_PRIVATE)
+                    val ep = sp1.edit()
+                    ep.putString("thisUsername", "")
+                    ep.putString("uuid", "")
+                    ep.commit()
                     val intent = Intent(this, LoginActivity::class.java)
-                    intent.putExtra("requestCode",REQUEST_CREATE)
-                    startActivityForResult(intent, REQUEST_CREATE)
+                    intent.putExtra("requestCode", REQUEST_MUST_LOGIN)
+                    startActivityForResult(intent, REQUEST_MUST_LOGIN)
                     true
                 }
                 else -> false
@@ -123,15 +189,19 @@ class ItemDetailHostActivity : AppCompatActivity(){
 
     override fun onActivityResult(requestCode: Int, resultCode: Int, data: Intent?) {
         super.onActivityResult(requestCode, resultCode, data)
-        if(resultCode == Activity.RESULT_OK && (requestCode == REQUEST_LOGIN || requestCode == REQUEST_CREATE)){
+        if(resultCode == Activity.RESULT_OK && (requestCode == REQUEST_LOGIN || requestCode == REQUEST_MUST_LOGIN)){
             val username = data?.getStringExtra("username")
             val uuid = data?.getStringExtra("uuid")
+            currentUsername.value=username!!
             sharedPref = getSharedPreferences("notTalkPref", MODE_PRIVATE)
             with (sharedPref.edit()){
                 putString("thisUsername", username)
                 putString("uuid", uuid)
             }.commit()
             applicationContext.startService(Intent(this, SyncService::class.java))
+        }
+        if(resultCode == Activity.RESULT_CANCELED && requestCode == REQUEST_MUST_LOGIN){
+            finish()
         }
     }
 

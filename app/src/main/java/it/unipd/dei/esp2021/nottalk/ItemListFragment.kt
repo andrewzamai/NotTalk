@@ -133,9 +133,10 @@ class ItemListFragment : Fragment() {
                         }
                         else if(result){
                             if(doesExist){
-                                Toast.makeText(context, "User already in database", Toast.LENGTH_LONG).show()
+                                Toast.makeText(context, "User updated", Toast.LENGTH_LONG).show()
                             }
                             else repo.insertUser(User(username))
+                            repo.createRelation(username)
                         }
                     }
                 }
@@ -160,12 +161,13 @@ class ItemListFragment : Fragment() {
 
     // inner classes UserHolder and UserAdapter for UserRecyclerView
 
-    private inner class UserHolder(binding: ItemListContentBinding) : RecyclerView.ViewHolder(binding.root), View.OnClickListener {
+    private inner class UserHolder(binding: ItemListContentBinding) : RecyclerView.ViewHolder(binding.root), View.OnClickListener, View.OnLongClickListener {
         private lateinit var user: User // stores a reference to the User object
         private val username: TextView = binding.idUser //stores reference to textview field
 
         init{
             itemView.setOnClickListener(this)
+            itemView.setOnLongClickListener(this)
         }
 
         fun bind(user: User){
@@ -191,6 +193,18 @@ class ItemListFragment : Fragment() {
                 // show_item_detail is the action ID that navigates from list fragment to detail fragment
                 itemView.findNavController().navigate(R.id.show_item_detail, bundle)
             }
+        }
+
+        override fun onLongClick(v: View?): Boolean {
+            val alert = AlertDialog.Builder(context)
+            alert.setTitle("Delete chat")
+            alert.setMessage("Are you sure to delete chat with ${username.text}?")
+            alert.setPositiveButton("Yes") { _, _ ->
+                NotTalkRepository.get().removeRelation(username.text.toString())
+            }
+            alert.setNegativeButton("No") { _, _ -> }
+            alert.show()
+            return true
         }
     }
 

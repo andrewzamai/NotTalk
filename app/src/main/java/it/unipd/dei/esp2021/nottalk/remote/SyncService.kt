@@ -15,6 +15,7 @@ import it.unipd.dei.esp2021.nottalk.ItemDetailHostActivity
 import it.unipd.dei.esp2021.nottalk.NotTalkRepository
 import it.unipd.dei.esp2021.nottalk.database.ChatDatabase
 import it.unipd.dei.esp2021.nottalk.database.FileManager
+import it.unipd.dei.esp2021.nottalk.database.User
 import it.unipd.dei.esp2021.nottalk.util.AppNotificationManager
 import java.util.concurrent.Executor
 import java.util.concurrent.Executors
@@ -59,9 +60,14 @@ class SyncService : Service() {
                     val cd = NotTalkRepository.get()
                     cd.insertMessages(response.first)
                     sa.deleteMsg(username!!, uuid!!, response.second)
-
-
-
+                    Thread(Runnable {
+                        for (msg in response.first) {
+                            if (!cd.existsRelation(username, msg.fromUser)) {
+                                cd.insertUser(User(msg.fromUser))
+                                cd.createRelation(msg.fromUser)
+                            }
+                        }
+                    }).start()
                     val nm = AppNotificationManager.get()
                     nm.append(response.first)
                     nm.sendNotification()
