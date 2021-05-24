@@ -1,20 +1,13 @@
 package it.unipd.dei.esp2021.nottalk.remote
 
-import android.app.NotificationManager
-import android.app.PendingIntent
 import android.app.Service
 import android.content.Intent
 import android.os.Build
 import android.os.IBinder
 import android.util.Log
-import androidx.core.app.NotificationCompat
-import androidx.core.app.NotificationManagerCompat
 import androidx.core.content.ContextCompat
-import it.unipd.dei.esp2021.nottalk.ItemDetailFragment
-import it.unipd.dei.esp2021.nottalk.ItemDetailHostActivity
 import it.unipd.dei.esp2021.nottalk.NotTalkRepository
-import it.unipd.dei.esp2021.nottalk.database.ChatDatabase
-import it.unipd.dei.esp2021.nottalk.database.FileManager
+import it.unipd.dei.esp2021.nottalk.util.FileManager
 import it.unipd.dei.esp2021.nottalk.database.User
 import it.unipd.dei.esp2021.nottalk.util.AppNotificationManager
 import java.util.concurrent.Executor
@@ -63,7 +56,7 @@ class SyncService : Service() {
                     Thread(Runnable {
                         for (msg in response.first) {
                             if (!cd.existsRelation(username, msg.fromUser)) {
-                                cd.insertUser(User(msg.fromUser))
+                                cd.insertUser(msg.fromUser)
                                 cd.createRelation(msg.fromUser)
                             }
                         }

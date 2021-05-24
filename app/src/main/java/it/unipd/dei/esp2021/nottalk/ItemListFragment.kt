@@ -2,11 +2,13 @@ package it.unipd.dei.esp2021.nottalk
 
 import android.app.AlertDialog
 import android.content.DialogInterface
+import android.graphics.BitmapFactory
 import android.os.Bundle
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
 import android.widget.EditText
+import android.widget.ImageView
 import android.widget.TextView
 import android.widget.Toast
 import androidx.fragment.app.Fragment
@@ -135,7 +137,7 @@ class ItemListFragment : Fragment() {
                             if(doesExist){
                                 Toast.makeText(context, "User updated", Toast.LENGTH_LONG).show()
                             }
-                            else repo.insertUser(User(username))
+                            else repo.insertUser(username)
                             repo.createRelation(username)
                         }
                     }
@@ -164,6 +166,7 @@ class ItemListFragment : Fragment() {
     private inner class UserHolder(binding: ItemListContentBinding) : RecyclerView.ViewHolder(binding.root), View.OnClickListener, View.OnLongClickListener {
         private lateinit var user: User // stores a reference to the User object
         private val username: TextView = binding.idUser //stores reference to textview field
+        private val picture: ImageView = binding.userImage
 
         init{
             itemView.setOnClickListener(this)
@@ -173,6 +176,12 @@ class ItemListFragment : Fragment() {
         fun bind(user: User){
             this.user = user
             username.text = this.user.username
+            val bArray = this.user.picture
+            if(bArray!=null) {
+                val bitmap = BitmapFactory.decodeByteArray(bArray, 0, bArray.size)
+                picture.setImageBitmap(bitmap)
+            }
+            else picture.setImageResource(R.drawable.ic_avatar)
         }
 
         override fun onClick(v: View?) {

@@ -1,8 +1,10 @@
 package it.unipd.dei.esp2021.nottalk
 
 import android.app.Activity
+import android.app.AlertDialog
 import android.content.Context
 import android.content.Context.MODE_PRIVATE
+import android.content.DialogInterface
 import android.content.Intent
 import android.net.Uri
 import android.os.Bundle
@@ -14,18 +16,19 @@ import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
 import android.widget.*
-import androidx.appcompat.app.AppCompatActivity
 import androidx.core.content.ContextCompat
 import androidx.lifecycle.Observer
 import androidx.lifecycle.ViewModelProvider
 import androidx.recyclerview.widget.LinearLayoutManager
 import androidx.recyclerview.widget.RecyclerView
-import it.unipd.dei.esp2021.nottalk.database.FileManager
+import it.unipd.dei.esp2021.nottalk.util.FileManager
 import it.unipd.dei.esp2021.nottalk.database.Message
 import it.unipd.dei.esp2021.nottalk.databinding.*
+import it.unipd.dei.esp2021.nottalk.remote.ServerAdapter
 import it.unipd.dei.esp2021.nottalk.util.PlayerService
 import java.text.SimpleDateFormat
 import java.util.*
+import java.util.concurrent.Executors
 
 /**
  * A fragment representing a single chat details: list of messages.
@@ -176,10 +179,14 @@ class ItemDetailFragment : Fragment() {
                 var intent: Intent? = null
                 var code: Int? = null
                 when(item.itemId){
-                    R.id.popup_image -> activity?.let { code=FileManager.PICK_IMAGE; intent=FileManager.pickFileFromStorage(it,code!!) }
-                    R.id.popup_video -> activity?.let { code=FileManager.PICK_VIDEO; intent=FileManager.pickFileFromStorage(it,code!!) }
-                    R.id.popup_audio -> activity?.let { code=FileManager.PICK_AUDIO; intent=FileManager.pickFileFromStorage(it,code!!) }
-                    R.id.popup_file -> activity?.let { code=FileManager.PICK_FILE; intent=FileManager.pickFileFromStorage(it,code!!) }
+                    R.id.popup_image -> activity?.let { code= FileManager.PICK_IMAGE; intent=
+                        FileManager.pickFileFromStorage(it,code!!) }
+                    R.id.popup_video -> activity?.let { code= FileManager.PICK_VIDEO; intent=
+                        FileManager.pickFileFromStorage(it,code!!) }
+                    R.id.popup_audio -> activity?.let { code= FileManager.PICK_AUDIO; intent=
+                        FileManager.pickFileFromStorage(it,code!!) }
+                    R.id.popup_file -> activity?.let { code= FileManager.PICK_FILE; intent=
+                        FileManager.pickFileFromStorage(it,code!!) }
                     else -> return@setOnMenuItemClickListener false
                 }
                 startActivityForResult(intent, code!!, null)
@@ -187,6 +194,31 @@ class ItemDetailFragment : Fragment() {
             }
             popUp.inflate(R.menu.file_popup_menu)
             popUp.show()
+        }
+        val executor = Executors.newSingleThreadExecutor()
+        executor.execute {
+            val sa = ServerAdapter()
+            var result: Boolean
+            try {
+                result = sa.checkUser(otherUsername)
+            }
+            catch(ex: Exception){
+                result=true
+            }
+            if(!result){
+                context?.mainExecutor?.execute{
+                    activity?.onBackPressed()
+                    val alert = AlertDialog.Builder(context)
+                    alert.setTitle("User Deleted")
+                    alert.setMessage("User $otherUsername does not exist anymore")
+                    alert.setPositiveButton("Ok") { _, _ -> }
+                }
+                repository.deleteUser(otherUsername)
+                repository.deleteByUserTo(otherUsername)
+                repository.deleteByUserFrom(otherUsername)
+                repository.deleteRelationsByOtherUser(otherUsername)
+                repository.deleteRelationsByThisUser(otherUsername)
+            }
         }
     }
 

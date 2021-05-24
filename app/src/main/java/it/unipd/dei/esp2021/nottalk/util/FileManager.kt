@@ -1,22 +1,14 @@
-package it.unipd.dei.esp2021.nottalk.database
+package it.unipd.dei.esp2021.nottalk.util
 
 import android.app.Activity
 import android.app.Application
 import android.content.*
-import android.graphics.ImageDecoder
 import android.net.Uri
 import android.os.Environment
 import android.provider.MediaStore
 import android.util.Base64
 import android.util.Base64.DEFAULT
-import android.util.Log
-import androidx.core.app.ActivityCompat
-import androidx.documentfile.provider.DocumentFile
-import java.io.File
-import java.io.FileOutputStream
-import java.io.InputStream
 import java.io.OutputStream
-import java.util.*
 
 
 class FileManager: Application() {

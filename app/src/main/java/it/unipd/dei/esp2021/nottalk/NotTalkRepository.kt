@@ -1,13 +1,17 @@
 package it.unipd.dei.esp2021.nottalk
 
+import android.R.attr.*
 import android.annotation.SuppressLint
 import android.app.Service
 import android.content.Context
 import android.content.Intent
+import android.graphics.Bitmap
+import android.graphics.Canvas
+import android.graphics.Color
+import android.graphics.Paint
 import android.net.Uri
 import android.util.Base64
 import android.util.Log
-import android.widget.Toast
 import androidx.documentfile.provider.DocumentFile
 import androidx.lifecycle.LiveData
 import androidx.room.Room
@@ -18,10 +22,11 @@ import it.unipd.dei.esp2021.nottalk.database.Message
 import it.unipd.dei.esp2021.nottalk.database.User
 import it.unipd.dei.esp2021.nottalk.database.UserRelation
 import it.unipd.dei.esp2021.nottalk.remote.ServerAdapter
+import java.io.ByteArrayOutputStream
 import java.io.InputStream
-import java.lang.IllegalStateException
 import java.util.*
 import java.util.concurrent.Executors
+
 
 // the name of the database file
 private const val DATABASE_NAME = "chat-database"
@@ -50,8 +55,8 @@ class NotTalkRepository private constructor(context: Context){
             super.onCreate(db)
             Thread(Runnable{
                 val db = get()
-                db.insertUser(User("Gianni"))
-                db.insertUser(User("admin"))
+                db.insertUser("Gianni")
+                db.insertUser("admin")
             }).start()
         }
     }
@@ -82,9 +87,26 @@ class NotTalkRepository private constructor(context: Context){
         return userRelation.get(username)
     }
 
-    fun insertUser(user: User) {
+    fun insertUser(username: String) {
         executor.execute {
-            userDao.insert(user)
+            val b = Bitmap.createBitmap(200, 200, Bitmap.Config.ARGB_8888)
+            val canvas = Canvas(b)
+            val r = Random()
+            val hsv = FloatArray(3)
+            hsv[0]=r.nextInt(360).toFloat()
+            hsv[1]= 0.70F
+            hsv[2]= 0.70F
+            val color = Color.HSVToColor(hsv)
+            canvas.drawColor(color)
+            val paint = Paint()
+            paint.color= 0xFFFFFFFF.toInt()
+            paint.textSize= 140F
+            paint.textAlign=Paint.Align.CENTER
+            canvas.drawText(username[0].toString().toUpperCase(), 100F, 150F, paint)
+            val bos = ByteArrayOutputStream()
+            b.compress(Bitmap.CompressFormat.PNG,100,bos)
+            userDao.insert(User(username,bos.toByteArray()))
+            bos.close()
         }
     }
 

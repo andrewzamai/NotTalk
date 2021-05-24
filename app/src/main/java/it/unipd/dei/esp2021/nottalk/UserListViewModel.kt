@@ -27,9 +27,11 @@ class UserListViewModel : ViewModel() {
     // call insertUser function on NotTalkRepository reference,
     // which not only updates the list in ViewModel but adds it directly in the database
     // so changes will also be then notified userListLiveData list of user
+    /*
     fun insertUser(user: User) {
         notTalkRepository.insertUser(user)
     }
+    */
 
     override fun onCleared() {
         super.onCleared()
