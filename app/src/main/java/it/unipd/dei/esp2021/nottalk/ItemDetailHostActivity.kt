@@ -30,7 +30,7 @@ import it.unipd.dei.esp2021.nottalk.database.FileManager
 import it.unipd.dei.esp2021.nottalk.databinding.ActivityItemDetailBinding
 import it.unipd.dei.esp2021.nottalk.remote.ServerAdapter
 import it.unipd.dei.esp2021.nottalk.remote.SyncService
-import java.util.concurrent.Executors
+import it.unipd.dei.esp2021.nottalk.util.PlayerService
 
 /**
  * This activity will hosts the two fragments (ItemListFragment/ItemDetailFragment):
@@ -182,6 +182,8 @@ class ItemDetailHostActivity : AppCompatActivity(){
 
         // start syncService
         applicationContext.startService(Intent(this, SyncService::class.java))
+
+
     }
 
 
@@ -232,6 +234,13 @@ class ItemDetailHostActivity : AppCompatActivity(){
             userMessagesMap = HashMap()
         }
         userMessagesMap!!.put(username, textMessage)
+    }
+
+    fun startPlayerService(uriString: String) {
+        val intent = Intent(this, PlayerService::class.java)
+        intent.putExtra(PlayerService.PLAY_START, true)
+        intent.putExtra(PlayerService.URI_PATH, uriString)
+        applicationContext.startService(intent)
     }
 
 
