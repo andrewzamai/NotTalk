@@ -257,7 +257,21 @@ class ItemDetailFragment : Fragment() {
                 requestCode == FileManager.PICK_AUDIO||
                 requestCode == FileManager.PICK_FILE  ){
                 data?.data?.also { uri ->
-                    repository.sendFileMessage(requireContext(),uri,thisUsername,uuid,otherUsername)
+                    try {
+                        val size =
+                            context?.contentResolver?.openFileDescriptor(uri, "r")?.statSize!!
+                        if (size < 7e6.toLong()) {
+                            repository.sendFileMessage(
+                                requireContext(),
+                                uri,
+                                thisUsername,
+                                uuid,
+                                otherUsername
+                            )
+                            return
+                        }
+                    } finally{}
+                    Toast.makeText(context,"Max file size 7MB",Toast.LENGTH_LONG).show()
                     // Perform operations on the document using its URI.
                 }
             }
