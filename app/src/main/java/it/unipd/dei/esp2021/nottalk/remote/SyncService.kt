@@ -20,6 +20,7 @@ class SyncService : Service() {
     val backgroundExecutor = Executors.newSingleThreadScheduledExecutor()
 
     override fun onStartCommand(intent: Intent, flags: Int, startId: Int): Int {
+        /*
         backgroundExecutor.execute {
             // Your code logic goes here.
             Log.d("SyncService", "1")
@@ -29,6 +30,7 @@ class SyncService : Service() {
                 Log.d("SyncService", "2")
             }
         }
+        */
 
         backgroundExecutor.scheduleAtFixedRate({
             try {

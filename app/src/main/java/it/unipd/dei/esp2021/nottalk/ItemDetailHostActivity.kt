@@ -58,14 +58,15 @@ class ItemDetailHostActivity : AppCompatActivity(){
         // TODO: change from hardcoded username admin in username specified from user when registering
         sharedPref = getSharedPreferences("notTalkPref", MODE_PRIVATE)
         if (sharedPref.getString("thisUsername", "") == "") {
+            applicationContext.stopService(Intent(this, SyncService::class.java))
             Toast.makeText(applicationContext,"Please log in",Toast.LENGTH_LONG).show()
             val intent = Intent(this, LoginActivity::class.java)
             intent.putExtra("requestCode", REQUEST_MUST_LOGIN)
             startActivityForResult(intent, REQUEST_MUST_LOGIN)
         }
         else {
-            applicationContext.startService(Intent(this, SyncService::class.java))
             currentUsername.value= sharedPref.getString("thisUsername","")
+            applicationContext.startService(Intent(this, SyncService::class.java))
         }
             /*
             putString("thisUsername", "admin")
@@ -169,7 +170,7 @@ class ItemDetailHostActivity : AppCompatActivity(){
         intent?.let(::handleIntent)
 
         // start syncService
-        applicationContext.startService(Intent(this, SyncService::class.java))
+        //applicationContext.startService(Intent(this, SyncService::class.java))
 
 
     }
