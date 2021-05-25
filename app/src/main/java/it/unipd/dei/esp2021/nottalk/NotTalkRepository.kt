@@ -12,6 +12,7 @@ import android.graphics.Paint
 import android.net.Uri
 import android.util.Base64
 import android.util.Log
+import android.widget.Toast
 import androidx.documentfile.provider.DocumentFile
 import androidx.lifecycle.LiveData
 import androidx.room.Room
@@ -181,14 +182,27 @@ class NotTalkRepository private constructor(context: Context){
                 text
             )
             // adds it to the local database
-            insertMessage(msg)
+            var id: Long = -1
+            executor.execute {
+                id = messageDao.insert(msg)
+            }
             // tries to send it to the server
-            val response = server.sendTextMsg(msg.fromUser, uuid, msg.toUser, msg.date, msg.text)
+            var response: String = ""
+            try {
+                response = server.sendTextMsg(msg.fromUser, uuid, msg.toUser, msg.date, msg.text)
+            }
+            catch(ex: Exception){
+                println(ex.message)
+                ex.printStackTrace()
+                context.mainExecutor.execute {
+                    Toast.makeText(context,"Offline", Toast.LENGTH_LONG).show()
+                }
+            }
             if (response != "ok") {
                 //Toast.makeText(context.applicationContext, response, Toast.LENGTH_SHORT).show() // creates toast displaying error
                     Log.d("Server error", uuid)
                 Log.d("Server error", response)
-                this.deleteMessage(msg) // deletes it from local database if couldn't send it
+                deleteMessage(id) // deletes it from local database if couldn't send it
             }
         }).start()
     }
@@ -206,27 +220,44 @@ class NotTalkRepository private constructor(context: Context){
                 fileInStream = openInputStream(uri) ?: throw Exception("Error file")
             }
             val content = Base64.encodeToString(fileInStream.readBytes(), Base64.DEFAULT)
-            val result = server.sendFileMsg(
-                thisUsername,
-                uuid,
-                otherUsername,
-                date,
-                content,
-                mimetype!!,
-                filename!!
-            )
-            if (result == "ok") {
-                val msg = Message(otherUsername, thisUsername, date, "file", uri.toString())
-                msg.fileName = filename!!
-                msg.mimeType = mimetype!!
-                messageDao.insert(msg)
+            val msg = Message(otherUsername, thisUsername, date, "file", uri.toString())
+            msg.fileName = filename!!
+            msg.mimeType = mimetype!!
+            var id: Long = -1
+            executor.execute {
+                id = messageDao.insert(msg)
+            }
+
+            var result: String = ""
+            try {
+                val result = server.sendFileMsg(
+                    thisUsername,
+                    uuid,
+                    otherUsername,
+                    date,
+                    content,
+                    mimetype!!,
+                    filename!!
+                )
+            }
+            catch(ex: Exception){
+                println(ex.message)
+                ex.printStackTrace()
+                context.mainExecutor.execute {
+                    Toast.makeText(context,"Offline", Toast.LENGTH_LONG).show()
+                }
+            }
+            if (result != "ok") {
+                deleteMessage(id)
             }
         }).start()
     }
 
     // to delete a message from the database
-    fun deleteMessage(message: Message){
-        messageDao.delete(message)
+    fun deleteMessage(id: Long){
+        executor.execute {
+            messageDao.deleteById(id)
+        }
     }
 
     fun deleteByUserTo(toUser: String){

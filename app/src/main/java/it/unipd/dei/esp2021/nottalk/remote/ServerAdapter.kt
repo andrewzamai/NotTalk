@@ -22,6 +22,8 @@ class ServerAdapter {
     private fun sendJson(url: URL, jsonParam: JSONObject): JSONObject{
         val conn: HttpURLConnection = url.openConnection() as HttpURLConnection
         conn.requestMethod = "POST"
+        //conn.setChunkedStreamingMode(4e10.toInt())
+        //conn.readTimeout = 20000
         conn.setRequestProperty("Content-Type", "application/json;charset=UTF-8")
         conn.setRequestProperty("Accept", "application/json")
         //conn.setRequestProperty("Accept", "*/*")
@@ -122,7 +124,7 @@ class ServerAdapter {
         msg.put("filename", fileName)
         json.put("msg", msg)
 
-        val jsonResponse = sendJson(sendMsgUrl,json)
+        val jsonResponse = sendJson(sendMsgUrl, json)
         val status = jsonResponse.getString("status")
         if(status.equals("ok")) return status
         val error = jsonResponse.getString("error")

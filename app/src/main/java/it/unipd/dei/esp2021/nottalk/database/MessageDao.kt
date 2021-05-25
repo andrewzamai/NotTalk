@@ -27,16 +27,19 @@ interface MessageDao {
     fun findById(id: Int): LiveData<List<Message>>
 
     @Insert
-    fun insertAll(bills: List<Message>)
+    fun insertAll(bills: List<Message>): List<Long>
 
     @Insert
-    fun insert(bill: Message)
+    fun insert(bill: Message): Long
 
     @Query("DELETE FROM message WHERE toUser = :toUser")
     fun deleteByUserTo(toUser: String)
 
     @Query("DELETE FROM message WHERE fromUser = :fromUser")
     fun deleteByUserFrom(fromUser: String)
+
+    @Query("DELETE FROM message WHERE id = :id")
+    fun deleteById(id: Long)
 
     @Delete
     fun delete(bill: Message)
