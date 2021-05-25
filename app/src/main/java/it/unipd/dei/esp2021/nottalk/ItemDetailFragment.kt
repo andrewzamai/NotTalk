@@ -370,7 +370,7 @@ class ItemDetailFragment : Fragment() {
                 Log.d("ItemDetail", "Play Button pressed")
                 Log.d("ItemDetail", message.text)
                 val activity = activity as ItemDetailHostActivity
-                activity.startPlayerService(message.text)
+                activity.startPlayerService(message.text, otherUsername)
             }
 
             stopButton.setOnClickListener {

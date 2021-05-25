@@ -28,6 +28,9 @@
 
         <service android:name=".util.PlayerService"/>
 
+        <receiver android:name=".util.NotificationActionsReceiver" >
+        </receiver>
+
     </application>
 
     <uses-permission android:name="android.permission.INTERNET" />
@@ -35,5 +38,6 @@
     <uses-permission android:name="android.permission.READ_EXTERNAL_STORAGE" />
     <uses-permission android:name="android.permission.MANAGE_EXTERNAL_STORAGE" />
     <uses-permission android:name="android.permission.WAKE_LOCK" />
+    <uses-permission android:name="android.permission.FOREGROUND_SERVICE" />
 
 </manifest>

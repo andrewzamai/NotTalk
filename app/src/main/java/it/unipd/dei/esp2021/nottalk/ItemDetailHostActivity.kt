@@ -225,10 +225,11 @@ class ItemDetailHostActivity : AppCompatActivity(){
         userMessagesMap!!.put(username, textMessage)
     }
 
-    fun startPlayerService(uriString: String) {
+    fun startPlayerService(uriString: String, username: String) {
         val intent = Intent(this, PlayerService::class.java)
         intent.putExtra(PlayerService.PLAY_START, true)
         intent.putExtra(PlayerService.URI_PATH, uriString)
+        intent.putExtra(PlayerService.USERNAME, username)
         applicationContext.startService(intent)
     }
 

@@ -27,6 +27,16 @@ class NotTalkApplication : Application() {
             notificationManager.createNotificationChannel(channel)
         }
 
-        
+        // create a channel for audio/music messages
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
+            val name = "AudioNotificationChannel"
+            val importance = NotificationManager.IMPORTANCE_HIGH
+            val channel = NotificationChannel("audioNotTalk", name, importance)
+            val notificationManager: NotificationManager = getSystemService(NotificationManager::class.java)
+            notificationManager.createNotificationChannel(channel)
+        }
+
+
+
     }
 }

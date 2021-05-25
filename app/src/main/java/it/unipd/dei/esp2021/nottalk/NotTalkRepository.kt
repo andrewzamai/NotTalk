@@ -79,12 +79,15 @@ class NotTalkRepository private constructor(context: Context){
     private val sharedPreferences = context.getSharedPreferences("notTalkPref", Service.MODE_PRIVATE)
 
 
-
 // UserDao adapter functions
 
     //fun getAllUsers(): LiveData<List<User>> = userDao.all // liveData enables to notify an observer about changes in the list
     fun getAllUsers(username: String): LiveData<List<User>> {
         return userRelation.get(username)
+    }
+
+    fun findByUsername(username: String): List<User>? {
+        return userDao.findByUsername(username).value
     }
 
     fun insertUser(username: String) {
