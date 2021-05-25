@@ -233,7 +233,7 @@ class NotTalkRepository private constructor(context: Context){
 
             var result: String = ""
             try {
-                val result = server.sendFileMsg(
+                result = server.sendFileMsg(
                     thisUsername,
                     uuid,
                     otherUsername,
