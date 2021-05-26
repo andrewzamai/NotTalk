@@ -20,6 +20,9 @@ interface UserDao {
     @Query("SELECT EXISTS(SELECT * FROM user WHERE username = :username)")
     fun doesExist(username : String) : Boolean
 
+    @Query("SELECT picture FROM user WHERE username = :username")
+    fun findIconByUsername(username : String) : ByteArray
+
     @Insert(onConflict = OnConflictStrategy.IGNORE)
     fun insertAll(bills: List<User>)
 

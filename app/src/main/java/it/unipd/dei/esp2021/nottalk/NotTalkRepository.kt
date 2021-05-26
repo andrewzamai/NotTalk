@@ -5,10 +5,7 @@ import android.annotation.SuppressLint
 import android.app.Service
 import android.content.Context
 import android.content.Intent
-import android.graphics.Bitmap
-import android.graphics.Canvas
-import android.graphics.Color
-import android.graphics.Paint
+import android.graphics.*
 import android.net.Uri
 import android.os.AsyncTask
 import android.util.Base64
@@ -94,6 +91,10 @@ class NotTalkRepository private constructor(context: Context){
         return userDao.findByUsername(username)
     }
 
+    fun findIconByUsername(username: String): Bitmap{
+        val bArray = userDao.findIconByUsername(username)
+        return BitmapFactory.decodeByteArray(bArray, 0, bArray.size)
+    }
 
     fun insertUser(username: String) {
         executor.execute {
@@ -291,9 +292,12 @@ class NotTalkRepository private constructor(context: Context){
         }
     }
 
+    fun updateNotification(chatId: Long) {
+
+    }
 
 
-// Singleton Design Pattern for this class
+    // Singleton Design Pattern for this class
     companion object{
         @SuppressLint("StaticFieldLeak")
         private var INSTANCE: NotTalkRepository? = null

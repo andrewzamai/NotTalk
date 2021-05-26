@@ -10,4 +10,9 @@
     <string name="digitSomethingHint">Write something here</string>
     <string name="logout_item_text">Logout</string>
     <string name="delete_item_text">Delete user</string>
+    <string name="channel_new_messages">New messages</string>
+    <string name="channel_new_messages_description">All new incoming messages.</string>
+    <string name="label_reply">Reply</string>
+    <string name="hint_input">Type a message…</string>
+    <string name="sender_you">You</string>
 </resources>
