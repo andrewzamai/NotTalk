@@ -31,10 +31,8 @@ class SyncService : Service() {
             }
         }
         */
-
         backgroundExecutor.scheduleAtFixedRate({
-            try {
-                val sp1 = getSharedPreferences("notTalkPref", MODE_PRIVATE)
+            val sp1 = getSharedPreferences("notTalkPref", MODE_PRIVATE)
                 val username = sp1.getString("thisUsername", "")
                 val uuid = sp1.getString("uuid", "")
 
@@ -65,17 +63,9 @@ class SyncService : Service() {
                     }).start()
                     val nm = AppNotificationManager.get()
                     nm.append(response.first)
-                    nm.sendNotification()
+                    nm.showNotification(chat, false)
                 }
-            }
-            catch(ex: Exception){
-                print(ex.message)
-                ex.printStackTrace()
-            }
-            finally {
-                //STUB
-            }
-            // Your code logic goes here
+
         }, 0, DEFAULT_SYNC_INTERVAL, TimeUnit.SECONDS)
 
         return START_STICKY
@@ -89,6 +79,7 @@ class SyncService : Service() {
         backgroundExecutor.shutdown()
         super.onDestroy()
     }
+
 
     companion object {
         const val DEFAULT_SYNC_INTERVAL = 5.toLong()

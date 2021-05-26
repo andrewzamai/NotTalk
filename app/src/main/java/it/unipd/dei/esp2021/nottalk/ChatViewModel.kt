@@ -18,10 +18,8 @@ class ChatViewModel(thisUser: String, otherUser: String) : ViewModel() {
 
     }
 
-
-
-
-
-
-
+    @JvmName("getOtherUser1")
+    fun getOtherUser(): String {
+        return otherUser
+    }
 }
