@@ -15,7 +15,7 @@ interface UserDao {
     fun findByCustomerId(id: Int): LiveData<List<User>>
 
     @Query("SELECT * FROM user WHERE username = :username")
-    fun findByUsername(username: String): LiveData<List<User>>
+    fun findByUsername(username: String): User
 
     @Query("SELECT EXISTS(SELECT * FROM user WHERE username = :username)")
     fun doesExist(username : String) : Boolean

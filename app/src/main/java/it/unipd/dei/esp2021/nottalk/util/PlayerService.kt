@@ -21,6 +21,7 @@ import androidx.core.content.ContextCompat
 import it.unipd.dei.esp2021.nottalk.NotTalkRepository
 import it.unipd.dei.esp2021.nottalk.R
 import it.unipd.dei.esp2021.nottalk.database.User
+import kotlinx.coroutines.runBlocking
 import java.util.concurrent.Executor
 import java.util.concurrent.Executors
 
@@ -119,22 +120,22 @@ class PlayerService() : Service()
             Log.d(PLAYER_TAG, otherUsername)
         }
 
-        //val user: User? = username?.let { NotTalkRepository.get().getUserByUsername(it) }
 
-        /*
+        val user: User? = username?.let { NotTalkRepository.get().findByUsername(it) }
+
+
         username?.let { NotTalkRepository.get().findByUsername(it).toString() }?.let {
             Log.d(PLAYER_TAG,
                 it
             )
         }
-        */
-        /*
+
         val bArray = user?.picture
         var bitmap: Bitmap? = null
         if(bArray != null) {
             bitmap = BitmapFactory.decodeByteArray(bArray, 0, bArray.size)
         }
-        */
+
 
         mediaSession.setMetadata(
             MediaMetadataCompat.Builder()
@@ -143,7 +144,7 @@ class PlayerService() : Service()
                 // Artist.
                 .putString(MediaMetadata.METADATA_KEY_ARTIST, "from $username")
                 // Album art
-                //.putBitmap(MediaMetadata.METADATA_KEY_ART, bitmap)
+                .putBitmap(MediaMetadata.METADATA_KEY_ART, bitmap)
                 //.putBitmap(MediaMetadata.METADATA_KEY_ALBUM_ART, bitmap)
                 //.putString(MediaMetadata.METADATA_KEY_ALBUM_ART_URI, ) // TODO: get image of User
                 // Duration.

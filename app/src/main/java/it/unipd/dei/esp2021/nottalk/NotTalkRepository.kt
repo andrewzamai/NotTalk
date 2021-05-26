@@ -10,6 +10,7 @@ import android.graphics.Canvas
 import android.graphics.Color
 import android.graphics.Paint
 import android.net.Uri
+import android.os.AsyncTask
 import android.util.Base64
 import android.util.Log
 import android.widget.Toast
@@ -23,6 +24,7 @@ import it.unipd.dei.esp2021.nottalk.database.Message
 import it.unipd.dei.esp2021.nottalk.database.User
 import it.unipd.dei.esp2021.nottalk.database.UserRelation
 import it.unipd.dei.esp2021.nottalk.remote.ServerAdapter
+import kotlinx.coroutines.runBlocking
 import java.io.ByteArrayOutputStream
 import java.io.InputStream
 import java.util.*
@@ -49,6 +51,7 @@ class NotTalkRepository private constructor(context: Context){
         DATABASE_NAME
     )   .addCallback(ChatDatabaseCallback())
         .fallbackToDestructiveMigration()
+        .allowMainThreadQueries() //TODO: ATTENTION allowed queries on main thread
         .build()
 
     private class ChatDatabaseCallback(): RoomDatabase.Callback(){
@@ -87,9 +90,10 @@ class NotTalkRepository private constructor(context: Context){
         return userRelation.get(username)
     }
 
-    fun findByUsername(username: String): List<User>? {
-        return userDao.findByUsername(username).value
+    fun findByUsername(username: String) : User {
+        return userDao.findByUsername(username)
     }
+
 
     fun insertUser(username: String) {
         executor.execute {
