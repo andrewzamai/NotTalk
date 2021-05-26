@@ -1,20 +1,14 @@
 package it.unipd.dei.esp2021.nottalk.remote
 
-import android.app.NotificationManager
-import android.app.PendingIntent
 import android.app.Service
 import android.content.Intent
 import android.os.Build
 import android.os.IBinder
 import android.util.Log
-import androidx.core.app.NotificationCompat
-import androidx.core.app.NotificationManagerCompat
 import androidx.core.content.ContextCompat
-import it.unipd.dei.esp2021.nottalk.ItemDetailFragment
-import it.unipd.dei.esp2021.nottalk.ItemDetailHostActivity
 import it.unipd.dei.esp2021.nottalk.NotTalkRepository
-import it.unipd.dei.esp2021.nottalk.database.ChatDatabase
-import it.unipd.dei.esp2021.nottalk.database.FileManager
+import it.unipd.dei.esp2021.nottalk.util.FileManager
+import it.unipd.dei.esp2021.nottalk.database.User
 import it.unipd.dei.esp2021.nottalk.util.AppNotificationManager
 import java.util.concurrent.Executor
 import java.util.concurrent.Executors
@@ -26,6 +20,7 @@ class SyncService : Service() {
     val backgroundExecutor = Executors.newSingleThreadScheduledExecutor()
 
     override fun onStartCommand(intent: Intent, flags: Int, startId: Int): Int {
+        /*
         backgroundExecutor.execute {
             // Your code logic goes here.
             Log.d("SyncService", "1")
@@ -35,6 +30,7 @@ class SyncService : Service() {
                 Log.d("SyncService", "2")
             }
         }
+        */
 
         backgroundExecutor.scheduleAtFixedRate({
             try {
@@ -59,10 +55,17 @@ class SyncService : Service() {
                     val cd = NotTalkRepository.get()
                     cd.insertMessages(response.first)
                     sa.deleteMsg(username!!, uuid!!, response.second)
+                    Thread(Runnable {
+                        for (msg in response.first) {
+                            if (!cd.existsRelation(username, msg.fromUser)) {
+                                cd.insertUser(msg.fromUser)
+                                cd.createRelation(msg.fromUser)
+                            }
+                        }
+                    }).start()
                     val nm = AppNotificationManager.get()
                     nm.append(response.first)
                     nm.sendNotification()
-
                 }
             }
             catch(ex: Exception){

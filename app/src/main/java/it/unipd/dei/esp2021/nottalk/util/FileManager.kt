@@ -1,24 +1,23 @@
-package it.unipd.dei.esp2021.nottalk.database
+package it.unipd.dei.esp2021.nottalk.util
 
+import android.app.Activity
 import android.app.Application
-import android.content.ContentResolver
-import android.content.ContentValues
-import android.content.Context
-import android.content.ContextWrapper
-import android.graphics.ImageDecoder
+import android.content.*
 import android.net.Uri
 import android.os.Environment
 import android.provider.MediaStore
 import android.util.Base64
 import android.util.Base64.DEFAULT
-import android.util.Log
-import java.io.File
-import java.io.FileOutputStream
 import java.io.OutputStream
 
 
 class FileManager: Application() {
     companion object{
+        const val PICK_FILE = 2
+        const val PICK_IMAGE = 3
+        const val PICK_VIDEO = 4
+        const val PICK_AUDIO = 5
+
         fun saveFileToStorage(context: Context, file: String, filename: String, mimeType: String): String{
             val contentResolver = context.contentResolver
             val fileOutStream: OutputStream
@@ -71,6 +70,23 @@ class FileManager: Application() {
             fileOutStream.write(Base64.decode(file,DEFAULT))
             fileOutStream.close()
             return uri.toString()
+        }
+
+        fun pickFileFromStorage(activity: Activity, code: Int): Intent{
+            return Intent(Intent.ACTION_OPEN_DOCUMENT).apply {
+                addCategory(Intent.CATEGORY_OPENABLE)
+                addFlags(Intent.FLAG_GRANT_PERSISTABLE_URI_PERMISSION)
+                addFlags(Intent.FLAG_GRANT_READ_URI_PERMISSION)
+                type = when(code){
+                    PICK_IMAGE -> "image/*"
+                    PICK_VIDEO -> "video/*"
+                    PICK_AUDIO -> "audio/*"
+                    else -> "*/*"
+                }
+                // Optionally, specify a URI for the file that should appear in the
+                // system file picker when it loads.
+                //putExtra(DocumentsContract.EXTRA_INITIAL_URI, pickerInitialUri)
+            }
         }
     }
 }

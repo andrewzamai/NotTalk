@@ -1,6 +1,7 @@
 package it.unipd.dei.esp2021.nottalk
 
 import android.util.Log
+import androidx.lifecycle.Transformations
 import androidx.lifecycle.ViewModel
 import it.unipd.dei.esp2021.nottalk.database.ChatDatabase
 import it.unipd.dei.esp2021.nottalk.database.User
@@ -19,14 +20,18 @@ class UserListViewModel : ViewModel() {
     }
 
     private val notTalkRepository = NotTalkRepository.get() // reference to NotTalkRepository instance
-    val userListLiveData = notTalkRepository.getAllUsers() // LiveData list of all users
+    val userListLiveData = Transformations.switchMap(ItemDetailHostActivity.currentUsername) { param->
+        notTalkRepository.getAllUsers(param)
+    } // LiveData list of all users
 
     // call insertUser function on NotTalkRepository reference,
     // which not only updates the list in ViewModel but adds it directly in the database
     // so changes will also be then notified userListLiveData list of user
+    /*
     fun insertUser(user: User) {
         notTalkRepository.insertUser(user)
     }
+    */
 
     override fun onCleared() {
         super.onCleared()

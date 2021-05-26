@@ -17,11 +17,17 @@ interface UserDao {
     @Query("SELECT * FROM user WHERE username = :username")
     fun findByUsername(username: String): LiveData<List<User>>
 
-    @Insert
+    @Query("SELECT EXISTS(SELECT * FROM user WHERE username = :username)")
+    fun doesExist(username : String) : Boolean
+
+    @Insert(onConflict = OnConflictStrategy.IGNORE)
     fun insertAll(bills: List<User>)
 
     @Insert(onConflict = OnConflictStrategy.IGNORE)
     fun insert(bill: User)
+
+    @Query("DELETE FROM user WHERE username = :username")
+    fun deleteUser(username: String)
 
     @Delete
     fun delete(bill: User)

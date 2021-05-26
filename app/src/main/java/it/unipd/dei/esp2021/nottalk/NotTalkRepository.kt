@@ -1,8 +1,19 @@
 package it.unipd.dei.esp2021.nottalk
 
+import android.R.attr.*
+import android.annotation.SuppressLint
+import android.app.Service
 import android.content.Context
+import android.content.Intent
+import android.graphics.Bitmap
+import android.graphics.Canvas
+import android.graphics.Color
+import android.graphics.Paint
+import android.net.Uri
+import android.util.Base64
 import android.util.Log
 import android.widget.Toast
+import androidx.documentfile.provider.DocumentFile
 import androidx.lifecycle.LiveData
 import androidx.room.Room
 import androidx.room.RoomDatabase
@@ -10,10 +21,13 @@ import androidx.sqlite.db.SupportSQLiteDatabase
 import it.unipd.dei.esp2021.nottalk.database.ChatDatabase
 import it.unipd.dei.esp2021.nottalk.database.Message
 import it.unipd.dei.esp2021.nottalk.database.User
+import it.unipd.dei.esp2021.nottalk.database.UserRelation
 import it.unipd.dei.esp2021.nottalk.remote.ServerAdapter
-import java.lang.IllegalStateException
+import java.io.ByteArrayOutputStream
+import java.io.InputStream
 import java.util.*
 import java.util.concurrent.Executors
+
 
 // the name of the database file
 private const val DATABASE_NAME = "chat-database"
@@ -34,6 +48,7 @@ class NotTalkRepository private constructor(context: Context){
         ChatDatabase::class.java,
         DATABASE_NAME
     )   .addCallback(ChatDatabaseCallback())
+        .fallbackToDestructiveMigration()
         .build()
 
     private class ChatDatabaseCallback(): RoomDatabase.Callback(){
@@ -41,8 +56,8 @@ class NotTalkRepository private constructor(context: Context){
             super.onCreate(db)
             Thread(Runnable{
                 val db = get()
-                db.insertUser(User("Gianni"))
-                db.insertUser(User("admin"))
+                db.insertUser("Gianni")
+                db.insertUser("admin")
             }).start()
         }
     }
@@ -54,22 +69,87 @@ class NotTalkRepository private constructor(context: Context){
 
     // reference to an UserDao instance
     private val userDao = database.userDao()
+    // reference to a UserRelationDao instance
+    private val userRelation = database.userRelationDao()
     // reference to a MessageDao instance
     private val messageDao = database.messageDao()
 
     // single thread executor to perform functions as insert in database which needs not to stop the main (UI) thread
     private val executor = Executors.newSingleThreadExecutor()
 
+    private val sharedPreferences = context.getSharedPreferences("notTalkPref", Service.MODE_PRIVATE)
 
 
 // UserDao adapter functions
 
-    fun getAllUsers(): LiveData<List<User>> = userDao.all // liveData enables to notify an observer about changes in the list
+    //fun getAllUsers(): LiveData<List<User>> = userDao.all // liveData enables to notify an observer about changes in the list
+    fun getAllUsers(username: String): LiveData<List<User>> {
+        return userRelation.get(username)
+    }
 
-    fun insertUser(user: User) {
+    fun findByUsername(username: String): List<User>? {
+        return userDao.findByUsername(username).value
+    }
+
+    fun insertUser(username: String) {
         executor.execute {
-            userDao.insert(user)
+            val b = Bitmap.createBitmap(200, 200, Bitmap.Config.ARGB_8888)
+            val canvas = Canvas(b)
+            val r = Random()
+            val hsv = FloatArray(3)
+            hsv[0]=r.nextInt(360).toFloat()
+            hsv[1]= 0.70F
+            hsv[2]= 0.70F
+            val color = Color.HSVToColor(hsv)
+            canvas.drawColor(color)
+            val paint = Paint()
+            paint.color= 0xFFFFFFFF.toInt()
+            paint.textSize= 140F
+            paint.textAlign=Paint.Align.CENTER
+            canvas.drawText(username[0].toString().toUpperCase(), 100F, 150F, paint)
+            val bos = ByteArrayOutputStream()
+            b.compress(Bitmap.CompressFormat.PNG,100,bos)
+            userDao.insert(User(username,bos.toByteArray()))
+            bos.close()
         }
+    }
+
+    fun checkUser(username: String): Boolean{
+        return userDao.doesExist(username)
+    }
+
+    fun deleteUser(username: String){
+        executor.execute {
+            userDao.deleteUser(username)
+        }
+    }
+
+    fun createRelation(otherUsername: String){
+        executor.execute {
+            val thisUsername = sharedPreferences.getString("thisUsername","")?:""
+            if(thisUsername!=""){
+                userRelation.insert(UserRelation(thisUsername,otherUsername))
+            }
+        }
+    }
+
+    fun insertRelation(ur: UserRelation){
+        executor.execute {
+            userRelation.insert(ur)
+        }
+    }
+
+    fun removeRelation(otherUsername: String){
+        executor.execute {
+            val thisUsername = sharedPreferences.getString("thisUsername","")?:""
+            if(thisUsername!=""){
+                userRelation.delete(UserRelation(thisUsername,otherUsername))
+            }
+        }
+    }
+
+    fun existsRelation(thisUsername: String, otherUsername: String): Boolean {
+        return userRelation.existsRelation(thisUsername,otherUsername)
     }
 
     fun insertMessages(messages: List<Message>) {
@@ -105,27 +185,113 @@ class NotTalkRepository private constructor(context: Context){
                 text
             )
             // adds it to the local database
-            insertMessage(msg)
+            var id: Long = -1
+            executor.execute {
+                id = messageDao.insert(msg)
+            }
             // tries to send it to the server
-            val response = server.sendTextMsg(msg.fromUser, uuid, msg.toUser, msg.date, msg.text)
+            var response: String = ""
+            try {
+                response = server.sendTextMsg(msg.fromUser, uuid, msg.toUser, msg.date, msg.text)
+            }
+            catch(ex: Exception){
+                println(ex.message)
+                ex.printStackTrace()
+                context.mainExecutor.execute {
+                    Toast.makeText(context,"Offline", Toast.LENGTH_LONG).show()
+                }
+            }
             if (response != "ok") {
                 //Toast.makeText(context.applicationContext, response, Toast.LENGTH_SHORT).show() // creates toast displaying error
                     Log.d("Server error", uuid)
                 Log.d("Server error", response)
-                this.deleteMessage(msg) // deletes it from local database if couldn't send it
+                deleteMessage(id) // deletes it from local database if couldn't send it
+            }
+        }).start()
+    }
+
+    fun sendFileMessage(context: Context, uri: Uri, thisUsername: String, uuid: String, otherUsername: String){
+        Thread(Runnable {
+            val contentResolver = context.contentResolver
+            contentResolver.takePersistableUriPermission(uri, Intent.FLAG_GRANT_READ_URI_PERMISSION)
+            val mimetype = contentResolver.getType(uri)
+            val filename = DocumentFile.fromSingleUri(context, uri)?.name
+            val fileInStream: InputStream
+            val date = Calendar.getInstance().timeInMillis
+
+            contentResolver.run {
+                fileInStream = openInputStream(uri) ?: throw Exception("Error file")
+            }
+            val content = Base64.encodeToString(fileInStream.readBytes(), Base64.DEFAULT)
+            val msg = Message(otherUsername, thisUsername, date, "file", uri.toString())
+            msg.fileName = filename!!
+            msg.mimeType = mimetype!!
+            var id: Long = -1
+            executor.execute {
+                id = messageDao.insert(msg)
+            }
+
+            var result: String = ""
+            try {
+                result = server.sendFileMsg(
+                    thisUsername,
+                    uuid,
+                    otherUsername,
+                    date,
+                    content,
+                    mimetype!!,
+                    filename!!
+                )
+            }
+            catch(ex: Exception){
+                println(ex.message)
+                ex.printStackTrace()
+                context.mainExecutor.execute {
+                    Toast.makeText(context,"Offline", Toast.LENGTH_LONG).show()
+                }
+            }
+            if (result != "ok") {
+                deleteMessage(id)
             }
         }).start()
     }
 
     // to delete a message from the database
-    fun deleteMessage(message: Message){
-        messageDao.delete(message)
+    fun deleteMessage(id: Long){
+        executor.execute {
+            messageDao.deleteById(id)
+        }
+    }
+
+    fun deleteByUserTo(toUser: String){
+        executor.execute {
+            messageDao.deleteByUserTo(toUser)
+        }
+    }
+
+    fun deleteByUserFrom(fromUser: String){
+        executor.execute {
+            messageDao.deleteByUserFrom(fromUser)
+        }
+    }
+
+    fun deleteRelationsByThisUser(username: String){
+        executor.execute {
+            userRelation.deleteAllByThisUser(username)
+        }
+    }
+
+    fun deleteRelationsByOtherUser(username: String){
+        executor.execute {
+            userRelation.deleteAllByOtherUser(username)
+        }
     }
 
 
 
 // Singleton Design Pattern for this class
     companion object{
+        @SuppressLint("StaticFieldLeak")
         private var INSTANCE: NotTalkRepository? = null
 
         fun initialize(context: Context){

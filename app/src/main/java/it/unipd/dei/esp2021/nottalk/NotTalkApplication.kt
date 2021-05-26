@@ -13,16 +13,30 @@ class NotTalkApplication : Application() {
     override fun onCreate() {
         super.onCreate()
 
+        // initializes a NotTalkRepository object
         NotTalkRepository.initialize(this)
+        // initializes a AppNotificationManager object
         AppNotificationManager.initialize(applicationContext)
 
+        // create a channel
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
             val name = "DefaultNotificationChannel"
-            val importance = NotificationManager.IMPORTANCE_DEFAULT
+            val importance = NotificationManager.IMPORTANCE_HIGH // must be high to have ChatBubbles
             val channel = NotificationChannel("notTalk", name, importance)
             val notificationManager: NotificationManager = getSystemService(NotificationManager::class.java)
             notificationManager.createNotificationChannel(channel)
         }
+
+        // create a channel for audio/music messages
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
+            val name = "AudioNotificationChannel"
+            val importance = NotificationManager.IMPORTANCE_HIGH
+            val channel = NotificationChannel("audioNotTalk", name, importance)
+            val notificationManager: NotificationManager = getSystemService(NotificationManager::class.java)
+            notificationManager.createNotificationChannel(channel)
+        }
+
+
 
     }
 }
