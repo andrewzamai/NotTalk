@@ -16,6 +16,7 @@ import android.support.v4.media.session.MediaSessionCompat
 import android.support.v4.media.session.PlaybackStateCompat
 import android.util.Log
 import androidx.core.app.NotificationCompat
+import androidx.core.app.NotificationManagerCompat
 import androidx.core.graphics.drawable.toBitmap
 import it.unipd.dei.esp2021.nottalk.NotTalkApplication
 import it.unipd.dei.esp2021.nottalk.NotTalkRepository
@@ -56,14 +57,55 @@ class PlayerService() : Service() {
                 PLAYER_PAUSE -> {
                     if (isPlaying) {
                         myPlayer!!.pause()
+                        // set information about playbackstate
+                        mediaSession.setPlaybackState(
+                            PlaybackStateCompat.Builder()
+                                .setState(
+                                    PlaybackStateCompat.STATE_PAUSED,
+                                    // Playback position
+                                    myPlayer!!.currentPosition.toLong(),
+                                    // Playback speed
+                                    myPlayer!!.playbackParams.speed
+                                )
+                                // isSeekable
+                                //.setActions(PlaybackStateCompat.ACTION_SEEK_TO)
+                                .build()
+                        )
                     }
                 }
                 PLAYER_RESTART -> {
                     myPlayer!!.seekTo(0, MediaPlayer.SEEK_CLOSEST)
                     myPlayer!!.start()
+                    mediaSession.setPlaybackState(
+                        PlaybackStateCompat.Builder()
+                            .setState(
+                                PlaybackStateCompat.STATE_PLAYING,
+                                // Playback position
+                                myPlayer!!.currentPosition.toLong(),
+                                // Playback speed
+                                myPlayer!!.playbackParams.speed
+                            )
+                            // isSeekable
+                            //.setActions(PlaybackStateCompat.ACTION_SEEK_TO)
+                            .build()
+                    )
+
                 }
                 PLAYER_START -> {
                     myPlayer!!.start()
+                    mediaSession.setPlaybackState(
+                        PlaybackStateCompat.Builder()
+                            .setState(
+                                PlaybackStateCompat.STATE_PLAYING,
+                                // Playback position
+                                myPlayer!!.currentPosition.toLong(),
+                                // Playback speed
+                                myPlayer!!.playbackParams.speed
+                            )
+                            // isSeekable
+                            //.setActions(PlaybackStateCompat.ACTION_SEEK_TO)
+                            .build()
+                    )
                 }
             }
         }
@@ -129,9 +171,9 @@ class PlayerService() : Service() {
         mediaSession.setPlaybackState(
             PlaybackStateCompat.Builder()
                 .setState(
-                    PlaybackStateCompat.STATE_NONE,
+                    PlaybackStateCompat.STATE_PLAYING,
                     // Playback position
-                    PlaybackState.PLAYBACK_POSITION_UNKNOWN,
+                    myPlayer!!.currentPosition.toLong(),
                     // Playback speed
                     myPlayer!!.playbackParams.speed
                 )
