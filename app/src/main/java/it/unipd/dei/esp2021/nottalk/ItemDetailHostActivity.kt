@@ -5,8 +5,11 @@ import android.app.AlertDialog
 import android.content.DialogInterface
 import android.content.Intent
 import android.content.SharedPreferences
+import android.graphics.Bitmap
 import android.os.Bundle
 import android.util.Log
+import android.widget.ImageView
+import android.widget.TextView
 import android.widget.Toast
 import androidx.appcompat.app.AppCompatActivity
 import androidx.lifecycle.MutableLiveData
@@ -39,6 +42,9 @@ class ItemDetailHostActivity : AppCompatActivity(){
     // toolbar
     private lateinit var toolbar: androidx.appcompat.widget.Toolbar
 
+    private lateinit var userIcon: ImageView
+    //private lateinit var toolbarTitle: TextView
+
     // navController
     private lateinit var navController: NavController
 
@@ -51,6 +57,8 @@ class ItemDetailHostActivity : AppCompatActivity(){
         // View binding Android Jetpack feature
         // binding will get a reference to the layout, using dot notation is possible to get a reference to all contained ID widgets
         val binding = ActivityItemDetailBinding.inflate(layoutInflater) //ActivityItemDetailBinding is the binding class generated for activity_item_detail.xml layout, .inflate(layoutInflater) does the inflate as setContentView(R.layout.activity_item_detail)
+        userIcon = binding.userIcon
+        //toolbarTitle = binding.toolbarTitle
         val view = binding.root //get a reference to the root view
         setContentView(view)  //and make it active on the screen
 
@@ -96,6 +104,7 @@ class ItemDetailHostActivity : AppCompatActivity(){
             else toolbar.inflateMenu(R.menu.toolbar_menu)
         }
         toolbar.title = getString(R.string.toolbar_chatLists)
+        //toolbarTitle.text = getString(R.string.toolbar_chatLists)
         toolbar.setOnMenuItemClickListener { item ->
             when (item.itemId) {
                 R.id.login_item -> {
@@ -212,6 +221,14 @@ class ItemDetailHostActivity : AppCompatActivity(){
 
     fun setToolBarTitle(title: String) {
         toolbar.title = title
+    }
+
+    fun setUserIconToolBar(icon: Bitmap?) {
+        if (icon == null) {
+            userIcon.setImageDrawable(getDrawable(R.drawable.default_user_icon))
+        } else {
+            userIcon.setImageBitmap(icon)
+        }
     }
 
     fun getMessageDraft(username: String): String? {

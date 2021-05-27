@@ -6,6 +6,7 @@ import android.content.Context
 import android.content.Context.MODE_PRIVATE
 import android.content.DialogInterface
 import android.content.Intent
+import android.graphics.BitmapFactory
 import android.net.Uri
 import android.os.Bundle
 import android.text.Editable
@@ -16,13 +17,16 @@ import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
 import android.widget.*
+import androidx.appcompat.content.res.AppCompatResources.getDrawable
 import androidx.core.content.ContextCompat
+import androidx.core.graphics.drawable.toBitmap
 import androidx.lifecycle.Observer
 import androidx.lifecycle.ViewModelProvider
 import androidx.recyclerview.widget.LinearLayoutManager
 import androidx.recyclerview.widget.RecyclerView
 import it.unipd.dei.esp2021.nottalk.util.FileManager
 import it.unipd.dei.esp2021.nottalk.database.Message
+import it.unipd.dei.esp2021.nottalk.database.User
 import it.unipd.dei.esp2021.nottalk.databinding.*
 import it.unipd.dei.esp2021.nottalk.remote.ServerAdapter
 import it.unipd.dei.esp2021.nottalk.util.PlayerService
@@ -40,6 +44,7 @@ class ItemDetailFragment : Fragment() {
 
     // reference to Fragment View
     private var _binding: FragmentItemDetailBinding? = null
+
     // editText view reference
     private lateinit var messageEditText: EditText
     // sendButton view reference
@@ -139,6 +144,22 @@ class ItemDetailFragment : Fragment() {
         super.onActivityCreated(savedInstanceState)
         val activity = activity as ItemDetailHostActivity
         activity.setToolBarTitle(otherUsername)
+
+        val user: User? = otherUsername.let { NotTalkRepository.get().findByUsername(it) }
+        Log.d("ItemDetailFragment", user.toString())
+        // retrieves its profile Bitmap picture to set it as notification media picture
+        val bArray = user?.picture
+        val bitmap = if (bArray != null) {
+            BitmapFactory.decodeByteArray(bArray, 0, bArray.size)
+        } else {
+            context?.getDrawable(R.drawable.ic_avatar)?.toBitmap()
+        }
+
+        if (bitmap != null) {
+            activity.setUserIconToolBar(bitmap)
+        }
+
+
         // retrieves messageDraft of this chat, if any, and sets it in messageEditText
         val messageDraft = activity.getMessageDraft(otherUsername)
         if (messageDraft != null) messageEditText.setText(messageDraft)
@@ -228,6 +249,7 @@ class ItemDetailFragment : Fragment() {
 
         val activity = activity as ItemDetailHostActivity
         activity.setToolBarTitle(getString(R.string.toolbar_chatLists))
+        activity.setUserIconToolBar(null)
     }
 
 
