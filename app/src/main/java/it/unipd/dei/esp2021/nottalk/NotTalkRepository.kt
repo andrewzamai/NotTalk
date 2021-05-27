@@ -292,10 +292,6 @@ class NotTalkRepository private constructor(context: Context){
         }
     }
 
-    fun updateNotification(chatId: Long) {
-
-    }
-
 
     // Singleton Design Pattern for this class
     companion object{

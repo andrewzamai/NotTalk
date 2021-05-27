@@ -70,7 +70,7 @@ class ItemListFragment : Fragment() {
         usersRecyclerView.layoutManager = LinearLayoutManager(context) // assign a LayoutManager
         usersRecyclerView.adapter = adapter // pass an adapter (initially emptyList)
 
-        floatingAddUserButton = binding.adduserButton!!
+        floatingAddUserButton = binding.adduserButton
 
         // manually insert some users in the database (gives error if already present)
         //if(userListViewModel.userListLiveData.value.isNullOrEmpty()) {

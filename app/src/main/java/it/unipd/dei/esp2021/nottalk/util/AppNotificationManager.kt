@@ -110,6 +110,7 @@ class AppNotificationManager(private val context: Context){
                     context,
                     REQUEST_CONTENT,
                     Intent(context, ItemDetailHostActivity::class.java)
+                        //.setFlags(Intent.FLAG_ACTIVITY_NEW_TASK)
                         .setAction(Intent.ACTION_VIEW)
                         .setData(contentUri),
                     PendingIntent.FLAG_UPDATE_CURRENT

@@ -227,7 +227,7 @@ class ItemDetailHostActivity : AppCompatActivity(){
 
     fun startPlayerService(uriString: String, username: String) {
         val intent = Intent(this, PlayerService::class.java)
-        intent.putExtra(PlayerService.PLAY_START, true)
+        intent.putExtra(PlayerService.PLAYER_START, true)
         intent.putExtra(PlayerService.URI_PATH, uriString)
         intent.putExtra(PlayerService.USERNAME, username)
         applicationContext.startService(intent)
@@ -246,7 +246,7 @@ class ItemDetailHostActivity : AppCompatActivity(){
                         ItemDetailFragment.ARG_ITEM_ID,
                         username
                     )
-                    navController.navigate(R.id.show_item_detail, bundle)
+                    navController.navigate(R.id.show_item_detail, bundle) //TODO: multiple fragments added on stack
                 }
             }
             /*

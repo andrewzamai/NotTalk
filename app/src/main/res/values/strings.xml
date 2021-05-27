@@ -15,4 +15,6 @@
     <string name="label_reply">Reply</string>
     <string name="hint_input">Type a message…</string>
     <string name="sender_you">You</string>
+    <string name="PlayerTitle">Audio</string>
+    <string name="PlayerArtist">from </string>
 </resources>

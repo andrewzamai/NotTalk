@@ -10,7 +10,7 @@
     <TextView
         android:id="@+id/id_user"
         android:layout_width="263dp"
-        android:layout_height="50dp"
+        android:layout_height="55dp"
         android:layout_margin="@dimen/text_margin"
         android:gravity="center_vertical"
         android:singleLine="false"
@@ -20,7 +20,6 @@
         android:textSize="20sp"
         app:layout_constraintBottom_toBottomOf="@id/line"
         app:layout_constraintEnd_toEndOf="parent"
-        app:layout_constraintHorizontal_bias="0.507"
         app:layout_constraintStart_toEndOf="@+id/user_image"
         app:layout_constraintTop_toTopOf="parent" />
 
@@ -28,15 +27,14 @@
         android:id="@+id/user_image"
         android:layout_width="55dp"
         android:layout_height="55dp"
-        android:layout_marginStart="28dp"
         app:layout_constraintBottom_toBottomOf="parent"
         app:layout_constraintStart_toStartOf="parent"
         app:layout_constraintTop_toTopOf="parent"
-        app:layout_constraintVertical_bias="0.518" />
+        app:layout_constraintEnd_toStartOf="@+id/id_user"/>
 
     <View
         android:id="@+id/line"
-        android:layout_width="410dp"
+        android:layout_width="match_parent"
         android:layout_height="2dp"
         android:background="@android:color/darker_gray"
         app:layout_constraintBottom_toBottomOf="parent"
