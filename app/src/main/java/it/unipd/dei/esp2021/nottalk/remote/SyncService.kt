@@ -18,7 +18,7 @@ import java.util.concurrent.TimeUnit
 
 class SyncService : Service() {
     // Create an executor that executes tasks in a background thread.
-    val backgroundExecutor = Executors.newSingleThreadScheduledExecutor()
+    private val backgroundExecutor = Executors.newSingleThreadScheduledExecutor()
 
     override fun onStartCommand(intent: Intent, flags: Int, startId: Int): Int {
         /*
@@ -49,6 +49,7 @@ class SyncService : Service() {
                                 msg.mimeType!!)
                             msg.text=path
                         }
+                        msg.read=false
                     }
                     //val cd = ChatDatabase.getDatabase(applicationContext)
                     val cd = NotTalkRepository.get()

@@ -13,4 +13,5 @@ data class Message(@ColumnInfo(name = "touser") val toUser: String,
     @PrimaryKey(autoGenerate = true) var id: Int? = null
     @ColumnInfo(name="filename") var fileName: String? = null
     @ColumnInfo(name="mimetype") var mimeType: String? = null
+    @ColumnInfo(name="read") var read: Boolean = true
 }

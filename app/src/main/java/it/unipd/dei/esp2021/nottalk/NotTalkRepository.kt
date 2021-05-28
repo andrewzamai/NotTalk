@@ -174,7 +174,15 @@ class NotTalkRepository private constructor(context: Context){
 // MessageDao adapter functions
     fun getConvo(thisUser: String, otherUser: String): LiveData<List<Message>> = messageDao.findConvo(thisUser, otherUser)
 
+    fun setAsRead(toUser: String,fromUser: String){
+        executor.execute {
+            messageDao.setAsRead(toUser,fromUser)
+        }
+    }
 
+    fun getUnreadCount(toUser: String,fromUser: String): LiveData<Int>{
+        return messageDao.getUnreadCount(toUser,fromUser)
+    }
 
 // ServerAdapter functions
 

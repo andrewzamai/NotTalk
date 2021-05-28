@@ -1,6 +1,7 @@
 package it.unipd.dei.esp2021.nottalk
 
 import android.app.AlertDialog
+import android.content.Context.MODE_PRIVATE
 import android.content.DialogInterface
 import android.graphics.BitmapFactory
 import android.os.Bundle
@@ -12,6 +13,7 @@ import android.widget.ImageView
 import android.widget.TextView
 import android.widget.Toast
 import androidx.fragment.app.Fragment
+import androidx.lifecycle.LiveData
 import androidx.lifecycle.Observer
 import androidx.lifecycle.ViewModelProvider
 import androidx.navigation.findNavController
@@ -43,6 +45,9 @@ class ItemListFragment : Fragment() {
     // reference to recyclerview
     private lateinit var usersRecyclerView: RecyclerView
     private lateinit var floatingAddUserButton: FloatingActionButton
+
+    // reference to the (singleton) notTalkRepository instance
+    private val repository: NotTalkRepository = NotTalkRepository.get()
 
     // reference to adapter, initially emptyList() then populated in OnViewCreated
     private var adapter: UserAdapter? = UserAdapter(emptyList())
@@ -167,13 +172,19 @@ class ItemListFragment : Fragment() {
         private lateinit var user: User // stores a reference to the User object
         private val username: TextView = binding.idUser //stores reference to textview field
         private val picture: ImageView = binding.userImage
+        private val countText: TextView = binding.count
+
+        private lateinit var msgCount: LiveData<Int>
+        private lateinit var thisUsername: String
 
         init{
             itemView.setOnClickListener(this)
             itemView.setOnLongClickListener(this)
+            thisUsername = context?.getSharedPreferences("notTalkPref", MODE_PRIVATE)?.getString("thisUsername", "")?:""
         }
 
         fun bind(user: User){
+            countText.visibility = View.INVISIBLE
             this.user = user
             username.text = this.user.username
             val bArray = this.user.picture
@@ -182,6 +193,17 @@ class ItemListFragment : Fragment() {
                 picture.setImageBitmap(bitmap)
             }
             else picture.setImageResource(R.drawable.ic_avatar)
+            Thread(Runnable{
+                msgCount = repository.getUnreadCount(thisUsername!!,user.username)
+                activity?.mainExecutor?.execute {
+                    msgCount.observe(viewLifecycleOwner, { count ->
+                        if (count > 0) {
+                            countText.text = count.toString()
+                            countText.visibility = View.VISIBLE
+                        } else countText.visibility = View.INVISIBLE
+                    })
+                }
+            }).start()
         }
 
         override fun onClick(v: View?) {
