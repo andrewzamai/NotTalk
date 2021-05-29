@@ -184,6 +184,10 @@ class NotTalkRepository private constructor(context: Context){
         return messageDao.getUnreadCount(toUser,fromUser)
     }
 
+    fun getLast(toUser: String,fromUser: String): LiveData<Message>{
+        return messageDao.getLast(toUser,fromUser)
+    }
+
 // ServerAdapter functions
 
     // to send a text message

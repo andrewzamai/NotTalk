@@ -33,23 +33,25 @@ class SyncService : Service() {
         }
         */
         backgroundExecutor.scheduleAtFixedRate({
-            val sp1 = getSharedPreferences("notTalkPref", MODE_PRIVATE)
+            try {
+                val sp1 = getSharedPreferences("notTalkPref", MODE_PRIVATE)
                 val username = sp1.getString("thisUsername", "")
                 val uuid = sp1.getString("uuid", "")
 
                 val sa = ServerAdapter()
-                val response = sa.checkMsg(username!!,uuid!!)
-                if(response.first.isNotEmpty()) {
-                    for(msg in response.first){
-                        if(msg.type=="file"){
+                val response = sa.checkMsg(username!!, uuid!!)
+                if (response.first.isNotEmpty()) {
+                    for (msg in response.first) {
+                        if (msg.type == "file") {
                             val path = FileManager.saveFileToStorage(
                                 applicationContext,
                                 msg.text,
                                 msg.fileName!!,
-                                msg.mimeType!!)
-                            msg.text=path
+                                msg.mimeType!!
+                            )
+                            msg.text = path
                         }
-                        msg.read=false
+                        msg.read = false
                     }
                     //val cd = ChatDatabase.getDatabase(applicationContext)
                     val cd = NotTalkRepository.get()
@@ -71,6 +73,11 @@ class SyncService : Service() {
                         nm.showNotification(chat, false)
                     }
                 }
+            }
+            catch(ex:Exception){
+                println(ex.message)
+                ex.printStackTrace()
+            }
 
         }, 0, DEFAULT_SYNC_INTERVAL, TimeUnit.SECONDS)
 

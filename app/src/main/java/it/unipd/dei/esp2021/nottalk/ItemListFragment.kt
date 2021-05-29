@@ -20,10 +20,14 @@ import androidx.navigation.findNavController
 import androidx.recyclerview.widget.LinearLayoutManager
 import androidx.recyclerview.widget.RecyclerView
 import com.google.android.material.floatingactionbutton.FloatingActionButton
+import it.unipd.dei.esp2021.nottalk.database.Message
 import it.unipd.dei.esp2021.nottalk.database.User
 import it.unipd.dei.esp2021.nottalk.databinding.FragmentItemListBinding
 import it.unipd.dei.esp2021.nottalk.databinding.ItemListContentBinding
 import it.unipd.dei.esp2021.nottalk.remote.ServerAdapter
+import java.text.SimpleDateFormat
+import java.time.LocalDate
+import java.util.*
 import java.util.concurrent.Executors
 
 
@@ -173,9 +177,12 @@ class ItemListFragment : Fragment() {
         private val username: TextView = binding.idUser //stores reference to textview field
         private val picture: ImageView = binding.userImage
         private val countText: TextView = binding.count
+        private val msgText: TextView = binding.lastMsgText
+        private val msgDate: TextView = binding.lastMsgDate
 
         private lateinit var msgCount: LiveData<Int>
-        private lateinit var thisUsername: String
+        private lateinit var lastMsg: LiveData<Message>
+        private var thisUsername: String
 
         init{
             itemView.setOnClickListener(this)
@@ -195,6 +202,7 @@ class ItemListFragment : Fragment() {
             else picture.setImageResource(R.drawable.ic_avatar)
             Thread(Runnable{
                 msgCount = repository.getUnreadCount(thisUsername!!,user.username)
+                lastMsg = repository.getLast(thisUsername!!,user.username)
                 activity?.mainExecutor?.execute {
                     msgCount.observe(viewLifecycleOwner, { count ->
                         if (count > 0) {
@@ -202,7 +210,43 @@ class ItemListFragment : Fragment() {
                             countText.visibility = View.VISIBLE
                         } else countText.visibility = View.INVISIBLE
                     })
+                    lastMsg.observe(viewLifecycleOwner, { msg ->
+                        if(msg==null){
+                            msgDate.text=""
+                            msgText.text=""
+                            return@observe
+                        }
+                        val type = msg.type
+                        var text = ""
+                        if(msg.fromUser==thisUsername!!) text+="You: "
+                        if(type=="text") text+=msg.text
+                        if(type=="file"){
+                            text += when(msg.mimeType!!.split("/")[0]){
+                                "image"-> "\uD83D\uDCF7 Image"
+                                "audio"-> "\uD83C\uDFA7 Audio"
+                                "video"-> "\uD83C\uDFA5 Video"
+                                else -> "\uD83D\uDCCB File"
+                            }
+                        }
+                        var sDate = ""
+                        val date = Date(msg.date)
+                        val cal = Calendar.getInstance()
+                        cal.set(Calendar.HOUR_OF_DAY,0)
+                        cal.set(Calendar.MINUTE,0)
+                        cal.set(Calendar.SECOND,0)
+                        cal.set(Calendar.MILLISECOND,0)
+                        sDate = if(msg.date>=cal.timeInMillis){
+                            val simpleDateFormat = SimpleDateFormat("HH:mm")
+                            simpleDateFormat.format(date)
+                        } else{
+                            val simpleDateFormat = SimpleDateFormat("dd/MM/yy")
+                            simpleDateFormat.format(date)
+                        }
+                        msgText.text=text
+                        msgDate.text=sDate
+                    })
                 }
+
             }).start()
         }
 
