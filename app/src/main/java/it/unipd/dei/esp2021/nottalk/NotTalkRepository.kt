@@ -148,7 +148,7 @@ class NotTalkRepository private constructor(context: Context){
         executor.execute {
             val thisUsername = sharedPreferences.getString("thisUsername","")?:""
             if(thisUsername!=""){
-                userRelation.delete(UserRelation(thisUsername,otherUsername))
+                userRelation.delete(thisUsername,otherUsername)
             }
         }
     }
@@ -223,6 +223,9 @@ class NotTalkRepository private constructor(context: Context){
                     Log.d("Server error", uuid)
                 Log.d("Server error", response)
                 deleteMessage(id) // deletes it from local database if couldn't send it
+                context.mainExecutor.execute {
+                    Toast.makeText(context,"Error occurred, please re-login", Toast.LENGTH_LONG).show()
+                }
             }
         }).start()
     }
@@ -269,6 +272,9 @@ class NotTalkRepository private constructor(context: Context){
             }
             if (result != "ok") {
                 deleteMessage(id)
+                context.mainExecutor.execute {
+                    Toast.makeText(context,"Error occurred, please re-login", Toast.LENGTH_LONG).show()
+                }
             }
         }).start()
     }

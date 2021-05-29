@@ -14,9 +14,14 @@
         <!-- Customize your theme here. -->
     </style>
 
+    <style name="NotTalkTheme" parent="Theme.AppCompat.Light.NoActionBar">
+        <item name="colorPrimaryDark">@color/NT_purple1</item>
+    </style>
+
     <style name="Theme.NotTalk.NoActionBar">
         <item name="windowActionBar">false</item>
         <item name="windowNoTitle">true</item>
+        <item name="colorControlNormal">@color/white</item>
     </style>
 
     <style name="Theme.NotTalk.AppBarOverlay" parent="ThemeOverlay.AppCompat.Dark.ActionBar" />

@@ -1,17 +1,26 @@
 package it.unipd.dei.esp2021.nottalk
 
+import android.annotation.SuppressLint
 import android.app.Activity
 import android.app.AlertDialog
+import android.content.ClipData
 import android.content.DialogInterface
 import android.content.Intent
 import android.content.SharedPreferences
 import android.graphics.Bitmap
+import android.graphics.Color
 import android.os.Bundle
+import android.text.SpannableStringBuilder
 import android.util.Log
+import android.view.Menu
+import android.view.MenuInflater
+import android.view.MenuItem
+import android.view.View
 import android.widget.ImageView
-import android.widget.TextView
 import android.widget.Toast
 import androidx.appcompat.app.AppCompatActivity
+import androidx.appcompat.view.menu.MenuBuilder
+import androidx.appcompat.view.menu.MenuView
 import androidx.lifecycle.MutableLiveData
 import androidx.navigation.NavController
 import androidx.navigation.fragment.NavHostFragment
@@ -22,6 +31,8 @@ import it.unipd.dei.esp2021.nottalk.remote.ServerAdapter
 import it.unipd.dei.esp2021.nottalk.remote.SyncService
 import it.unipd.dei.esp2021.nottalk.util.PlayerService
 import java.util.concurrent.Executors
+import java.util.zip.Inflater
+
 
 /**
  * This activity will hosts the two fragments (ItemListFragment/ItemDetailFragment):
@@ -101,8 +112,18 @@ class ItemDetailHostActivity : AppCompatActivity(){
             if(destination.id == R.id.fragment_item_detail || destination.id == R.id.item_detail_fragment){
                 toolbar.menu.clear()
             }
-            else toolbar.inflateMenu(R.menu.toolbar_menu)
+            else{
+                onCreateOptionsMenu(toolbar.menu)
+                val userItem = toolbar.menu.findItem(R.id.user_item)
+                userItem.icon.setTint(getColor(R.color.NT_purple2))
+                userItem.title= currentUsername.value
+
+                //toolbar.inflateMenu(R.menu.toolbar_menu)
+                //toolbar.menu.setGroupEnabled(R.id.group1,true)
+                //toolbar.menu.setGroupVisible(R.id.group1,true)
+            }
         }
+        //toolbar.setTitleTextColor(0xFFFFFF)
         toolbar.title = getString(R.string.toolbar_chatLists)
         //toolbarTitle.text = getString(R.string.toolbar_chatLists)
         toolbar.setOnMenuItemClickListener { item ->
@@ -182,6 +203,17 @@ class ItemDetailHostActivity : AppCompatActivity(){
         //applicationContext.startService(Intent(this, SyncService::class.java))
 
 
+    }
+
+    @SuppressLint("RestrictedApi")
+    override fun onCreateOptionsMenu(menu: Menu): Boolean {
+        if (menu is MenuBuilder) {
+            menu.setOptionalIconsVisible(true)
+            menu.isGroupDividerEnabled=true
+            menu.setGroupEnabled(R.id.group1,true)
+        }
+        menuInflater.inflate(R.menu.toolbar_menu, menu)
+        return super.onCreateOptionsMenu(menu)
     }
 
 
