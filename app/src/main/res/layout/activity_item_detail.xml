@@ -17,22 +17,23 @@
     <androidx.appcompat.widget.Toolbar
         android:id="@+id/toolbar"
         android:layout_width="match_parent"
-        android:layout_height="0dp"
+        android:layout_height="56dp"
         android:layout_gravity="center_vertical"
-        android:layout_weight="1"
+        android:layout_weight="0"
         android:background="?attr/colorPrimary"
-        android:backgroundTint="@color/light_gray"
+        android:backgroundTint="@color/NT_purple2"
         android:minHeight="?attr/actionBarSize"
-        android:theme="?attr/actionBarTheme">
+        android:theme="@style/Theme.NotTalk.NoActionBar"
+        app:titleTextColor="@color/white">
+
 
         <ImageView
             android:id="@+id/user_icon"
             android:layout_width="45dp"
             android:layout_height="45dp"
-            android:src="@drawable/default_user_icon"
             android:layout_gravity="right"
-            android:layout_marginEnd="12dp">
-        </ImageView>
+            android:layout_marginEnd="12dp"
+            android:src="@drawable/default_user_icon"></ImageView>
 
     </androidx.appcompat.widget.Toolbar>
 
@@ -44,7 +45,7 @@
         app:defaultNavHost="true"
         app:navGraph="@navigation/primary_details_nav_graph"
         tools:layout="@layout/fragment_item_detail"
-        android:layout_weight="9"/>
+        android:layout_weight="10"/>
 
 </LinearLayout>
 
