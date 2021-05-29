@@ -7,7 +7,9 @@ import android.content.Intent
 import android.content.LocusId
 import android.content.pm.ShortcutManager
 import android.graphics.drawable.Icon
+import android.os.Build
 import android.view.textclassifier.ConversationActions
+import androidx.annotation.RequiresApi
 import androidx.annotation.WorkerThread
 import androidx.core.app.NotificationCompat
 import androidx.core.app.NotificationManagerCompat
@@ -65,6 +67,7 @@ class AppNotificationManager(private val context: Context){
     */
 
 
+    @RequiresApi(Build.VERSION_CODES.R)
     @WorkerThread
     fun showNotification(chat: ChatViewModel, fromUser: Boolean, update: Boolean = false){
 
@@ -154,6 +157,7 @@ class AppNotificationManager(private val context: Context){
         notificationManager.cancel(id)
     }
 
+    @RequiresApi(Build.VERSION_CODES.R)
     fun canBubble(user: User): Boolean {
         val channel = notificationManager.getNotificationChannel(
             CHANNEL_NEW_MESSAGES,
@@ -162,6 +166,7 @@ class AppNotificationManager(private val context: Context){
         return notificationManager.areBubblesAllowed() || channel?.canBubble() == true
     }
 
+    @RequiresApi(Build.VERSION_CODES.R)
     fun updateNotification(chat: ChatViewModel, chatId: Int, prepopulatedMsgs: Boolean) {
         if (!prepopulatedMsgs) {
             showNotification(chat, fromUser = false, update = true)

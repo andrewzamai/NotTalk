@@ -5,6 +5,7 @@ import android.content.Intent
 import android.os.Build
 import android.os.IBinder
 import android.util.Log
+import androidx.annotation.RequiresApi
 import androidx.core.content.ContextCompat
 import it.unipd.dei.esp2021.nottalk.ChatViewModel
 import it.unipd.dei.esp2021.nottalk.NotTalkRepository
@@ -68,9 +69,12 @@ class SyncService : Service() {
 
                     val nm = AppNotificationManager.get()
                     //nm.append(response.first)
-                    for (i in response.first) {
-                        val chat = ChatViewModel(i.toUser, i.fromUser)
-                        nm.showNotification(chat, false)
+                    if(Build.VERSION.SDK_INT >= Build.VERSION_CODES.R) {
+                        for (i in response.first) {
+                            val chat = ChatViewModel(i.toUser, i.fromUser)
+                            nm.showNotification(chat, false)
+                            Log.d("SyncService", "3")
+                        }
                     }
                 }
             }
