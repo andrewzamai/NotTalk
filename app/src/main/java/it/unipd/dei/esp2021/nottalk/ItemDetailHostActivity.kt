@@ -21,6 +21,7 @@ import android.widget.Toast
 import androidx.appcompat.app.AppCompatActivity
 import androidx.appcompat.view.menu.MenuBuilder
 import androidx.appcompat.view.menu.MenuView
+import androidx.lifecycle.LifecycleOwner
 import androidx.lifecycle.MutableLiveData
 import androidx.navigation.NavController
 import androidx.navigation.fragment.NavHostFragment
@@ -114,13 +115,10 @@ class ItemDetailHostActivity : AppCompatActivity(){
             }
             else{
                 onCreateOptionsMenu(toolbar.menu)
+                userIcon.setBackgroundColor(0x00000000)
                 val userItem = toolbar.menu.findItem(R.id.user_item)
-                userItem.icon.setTint(getColor(R.color.NT_purple2))
                 userItem.title= currentUsername.value
-
-                //toolbar.inflateMenu(R.menu.toolbar_menu)
-                //toolbar.menu.setGroupEnabled(R.id.group1,true)
-                //toolbar.menu.setGroupVisible(R.id.group1,true)
+                userItem.icon.setTint(getColor(R.color.NT_purple2))
             }
         }
         //toolbar.setTitleTextColor(0xFFFFFF)
@@ -228,6 +226,8 @@ class ItemDetailHostActivity : AppCompatActivity(){
                 putString("thisUsername", username)
                 putString("uuid", uuid)
             }.commit()
+            val userItem = toolbar.menu.findItem(R.id.user_item)
+            userItem.title= currentUsername.value
             applicationContext.startService(Intent(this, SyncService::class.java))
         }
         if(resultCode == Activity.RESULT_CANCELED && requestCode == REQUEST_MUST_LOGIN){
