@@ -7,7 +7,7 @@ import androidx.room.RoomDatabase
 import androidx.sqlite.db.SupportSQLiteDatabase
 import java.util.concurrent.Executors
 
-@Database(entities = [(User::class), (Message::class), (UserRelation::class)], version = 3, exportSchema = false)
+@Database(entities = [(User::class), (Message::class), (UserRelation::class)], version = 5, exportSchema = false)
 abstract class ChatDatabase : RoomDatabase() {
 
     abstract fun userDao(): UserDao

@@ -22,7 +22,7 @@ class UserListViewModel : ViewModel() {
     private val notTalkRepository = NotTalkRepository.get() // reference to NotTalkRepository instance
     val userListLiveData = Transformations.switchMap(ItemDetailHostActivity.currentUsername) { param->
         notTalkRepository.getAllUsers(param)
-    } // LiveData list of all users
+    } // LiveData list of all userser
 
     // call insertUser function on NotTalkRepository reference,
     // which not only updates the list in ViewModel but adds it directly in the database

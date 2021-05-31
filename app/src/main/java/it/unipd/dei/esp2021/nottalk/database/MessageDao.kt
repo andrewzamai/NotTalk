@@ -20,6 +20,15 @@ interface MessageDao {
     @Query("SELECT * FROM message WHERE (toUser = :user1 and fromUser = :user2) or (toUser = :user2 and fromUser = :user1) ORDER BY date DESC")
     fun findConvo(user1: String, user2: String): LiveData<List<Message>>
 
+    @Query("UPDATE message SET read = :bool WHERE toUser = :toUser and fromUser = :fromUser and read != :bool")
+    fun setAsRead(toUser: String,fromUser: String,bool: Boolean = true)
+
+    @Query("SELECT COUNT(*) FROM message WHERE toUser = :toUser and fromUser = :fromUser and read = :bool")
+    fun getUnreadCount(toUser: String,fromUser: String,bool: Boolean = false): LiveData<Int>
+
+    @Query("SELECT * FROM message WHERE (toUser = :toUser and fromUser = :fromUser) OR (toUser = :fromUser and fromUser = :toUser) ORDER BY date DESC LIMIT 1")
+    fun getLast(toUser: String,fromUser: String): LiveData<Message>
+
     @Query("SELECT * FROM message WHERE id IN (:messageIds)")
     fun findAllByIds(messageIds: Array<Int>): LiveData<List<Message>>
 
