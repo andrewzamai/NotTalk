@@ -25,6 +25,13 @@
 
         <activity android:name=".LoginActivity"/>
 
+        <activity
+            android:name=".BubbleActivity"
+            android:allowEmbedded="true"
+            android:documentLaunchMode="always"
+            android:resizeableActivity="true">
+        </activity>
+
         <service android:name=".remote.SyncService" />
 
         <service android:name=".util.PlayerService"/>
