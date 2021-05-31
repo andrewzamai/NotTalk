@@ -1,48 +1,114 @@
 package it.unipd.dei.esp2021.nottalk.util
 
 import android.annotation.SuppressLint
-import android.app.PendingIntent
-import android.app.Person
+import android.app.*
 import android.content.Context
 import android.content.Intent
 import android.graphics.drawable.Icon
-import androidx.annotation.WorkerThread
+import android.net.Uri
+import android.os.Build
+import androidx.annotation.RequiresApi
 import androidx.core.app.NotificationCompat
-import androidx.core.app.NotificationManagerCompat
+import androidx.core.content.getSystemService
+import androidx.core.graphics.drawable.toIcon
 import androidx.core.net.toUri
-import it.unipd.dei.esp2021.nottalk.ItemDetailHostActivity
-import it.unipd.dei.esp2021.nottalk.NotTalkRepository
+import it.unipd.dei.esp2021.nottalk.*
 import it.unipd.dei.esp2021.nottalk.database.Message
 import java.lang.IllegalStateException
 
 class AppNotificationManager(private val context: Context){
 
-    private val pendingMessages = mutableListOf<Message>()
+    companion object {
 
-    fun clear(){
-        pendingMessages.clear()
+        @SuppressLint("StaticFieldLeak")
+        private var INSTANCE: AppNotificationManager? = null
+
+        private const val CHANNEL_NEW_MESSAGES = "notTalk"
+
+        private const val REQUEST_CONTENT = 1
+        private const val REQUEST_BUBBLE = 2
+
+        fun initialize(context: Context){
+            if(INSTANCE ==null) {
+                INSTANCE = AppNotificationManager(context)
+            }
+        }
+
+        fun get(): AppNotificationManager {
+            return INSTANCE ?: throw IllegalStateException("NotificationManager must be initialized!")
+        }
+
     }
 
-    fun append(list: List<Message>){
-        pendingMessages.addAll(list)
+    private val notificationManager: NotificationManager =
+        context.getSystemService() ?: throw IllegalStateException()
+
+    /*
+    fun setUpNotificationChannels() {
+        if (notificationManager.getNotificationChannel(CHANNEL_NEW_MESSAGES) == null) {
+            notificationManager.createNotificationChannel(
+                NotificationChannel(
+                    CHANNEL_NEW_MESSAGES,
+                    context.getString(R.string.channel_new_messages),
+                    // The importance must be IMPORTANCE_HIGH to show Bubbles.
+                    NotificationManager.IMPORTANCE_HIGH
+                ).apply {
+                    description = context.getString(R.string.channel_new_messages_description)
+                }
+            )
+        }
+
     }
+    */
 
 
-    fun setUpNotificationChannel(){
+    @RequiresApi(Build.VERSION_CODES.R)
+    fun showNotification(pendingMessages: Message, fromUser: Boolean, update: Boolean = false){
 
-    }
 
-    // A notification for all messages: DA ELIMINARE
-    fun sendNotification(){
 
-        val contentUri = "https://nottalk.esp2021.dei.unipd.it/username/${pendingMessages[0].fromUser}".toUri() // uri con username primo messaggio
+        val contentUri = "https://nottalk.esp2021.dei.unipd.it/username/${pendingMessages.fromUser}".toUri() // uri con username primo messaggio
 
-        val notification = NotificationCompat
-            .Builder(context,"notTalk")
-            .setTicker("Nuovi messaggi")
-            .setSmallIcon(android.R.drawable.ic_media_play)
-            .setContentTitle("Nuovi messaggi")
-            .setContentText("Hai ${pendingMessages.size} nuovi messaggi.")
+        val user = Person.Builder().setName(context.getString(R.string.sender_you)).build()
+
+        val icon = NotTalkRepository.get().findIconByUsername(pendingMessages.fromUser).toIcon()
+        val person = Person.Builder().setName(pendingMessages.fromUser).setIcon(icon).build()
+
+        val compId1 = NotTalkRepository.get().findByUsername(pendingMessages.toUser)!!.first().id
+        val compId2 = NotTalkRepository.get().findByUsername(pendingMessages.fromUser)!!.first().id!! * 65536
+
+        val chatId: Int = compId1!! + compId2
+
+        val pendingIntent = PendingIntent.getActivity(
+            context,
+            REQUEST_BUBBLE,
+            Intent(context, BubbleActivity::class.java)
+                .setAction(Intent.ACTION_VIEW)
+                .setData(contentUri),
+            PendingIntent.FLAG_UPDATE_CURRENT
+        )
+
+        val notification = Notification
+            .Builder(context, CHANNEL_NEW_MESSAGES)
+            .setBubbleMetadata(
+                Notification.BubbleMetadata.Builder(pendingIntent, icon)
+                    .setDesiredHeight(context.resources.getDimensionPixelSize(R.dimen.bubble_height))
+                    .apply{
+                        if(fromUser){
+                            setAutoExpandBubble(true)
+                        }
+                        if(fromUser || update){
+                            setSuppressNotification(true)
+                        }
+                    }
+                    .build()
+            )
+
+            .setContentTitle(pendingMessages.fromUser)
+            .setSmallIcon(android.R.drawable.stat_notify_chat)
+            .setCategory(Notification.CATEGORY_MESSAGE)
+            .addPerson(person)
+            .setShowWhen(true)
             .setContentIntent(
                 PendingIntent.getActivity(
                     context,
@@ -53,33 +119,71 @@ class AppNotificationManager(private val context: Context){
                     PendingIntent.FLAG_UPDATE_CURRENT
                 )
             )
-            //.setContentIntent(PendingIntent.getActivity(context, 0, Intent(context, ItemDetailHostActivity::class.java),0))
-            .setAutoCancel(true)
-            .build()
+            //This action permits to reply
+            .addAction(
+                Notification.Action
+                    .Builder(
+                        Icon.createWithResource(context, android.R.drawable.ic_menu_send),
+                        context.getString(R.string.label_reply),
+                        PendingIntent.getBroadcast(
+                            context,
+                            REQUEST_CONTENT,
+                            Intent(context, ReplyReceiver::class.java)
+                                .putExtra("chatId",chatId)
+                                .putExtra("otherUser", pendingMessages.fromUser),
+                            PendingIntent.FLAG_UPDATE_CURRENT
+                        )
+                    )
+                    .addRemoteInput(
+                        RemoteInput
+                            .Builder(ReplyReceiver.KEY_TEXT_REPLY)
+                            .setLabel(context.getString(R.string.hint_input))
+                            .build()
+                    )
+                    .setAllowGeneratedReplies(true)
+                    .build()
+            )
 
-        val notificationManager = NotificationManagerCompat.from(context)
-        notificationManager.notify(0, notification)
+            .setStyle(
+                Notification.MessagingStyle(user)
+                    .apply {
+                            val m = Notification.MessagingStyle.Message(
+                                pendingMessages.text,
+                                pendingMessages.date,
+                                person
+                            ).apply {
+                                if (pendingMessages.type != "file") {
+                                    setData(pendingMessages.mimeType, Uri.parse(pendingMessages.text))
+                                }
+                            }
+
+                            /*if (!update) {
+                                addHistoricMessage(m)
+                            } else {
+
+                             */
+                                addMessage(m)
+                            /*
+                            }
+                             */
+
+                    }
+                    .setGroupConversation(false)
+            )
+            .setWhen(pendingMessages.date)
+        notificationManager!!.notify(chatId, notification.build())
+
     }
 
 
+    fun updateNotification(chatId: Int) {
+        dismissNotification(chatId)
 
-    companion object{
-
-        @SuppressLint("StaticFieldLeak")
-        private var INSTANCE: AppNotificationManager? = null
-
-        fun initialize(context: Context){
-            if(INSTANCE==null) {
-                INSTANCE = AppNotificationManager(context)
-            }
-        }
-        fun get(): AppNotificationManager {
-            return INSTANCE?: throw IllegalStateException("NotificationManager must be initialized!")
-        }
-
-        // constants
-        private const val CHANNEL_NEW_MESSAGES = "new_messages"
-        private const val REQUEST_CONTENT = 1
-        private const val REQUEST_BUBBLE = 2
     }
+
+    private fun dismissNotification(id: Int) {
+        notificationManager!!.cancel(id)
+    }
+
+
 }

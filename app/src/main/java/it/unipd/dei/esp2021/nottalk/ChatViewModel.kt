@@ -4,6 +4,7 @@ import android.util.Log
 import androidx.lifecycle.LiveData
 import androidx.lifecycle.ViewModel
 import it.unipd.dei.esp2021.nottalk.database.Message
+import it.unipd.dei.esp2021.nottalk.util.AppNotificationManager
 
 class ChatViewModel(thisUser: String, otherUser: String) : ViewModel() {
 
@@ -15,13 +16,6 @@ class ChatViewModel(thisUser: String, otherUser: String) : ViewModel() {
 
     init{
         Log.d("ChatViewModel", "ChatViewModel instantiated with thisUser=${thisUser} and otherUser=${otherUser}")
-
     }
-
-
-
-
-
-
 
 }

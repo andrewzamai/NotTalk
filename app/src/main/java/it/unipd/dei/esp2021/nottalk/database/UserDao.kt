@@ -17,6 +17,9 @@ interface UserDao {
     @Query("SELECT * FROM user WHERE username = :username")
     fun findByUsername(username: String): LiveData<List<User>>
 
+    @Query("SELECT picture FROM user WHERE username = :username")
+    fun findIconByUsername(username : String) : ByteArray
+
     @Query("SELECT EXISTS(SELECT * FROM user WHERE username = :username)")
     fun doesExist(username : String) : Boolean
 

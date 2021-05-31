@@ -5,10 +5,7 @@ import android.annotation.SuppressLint
 import android.app.Service
 import android.content.Context
 import android.content.Intent
-import android.graphics.Bitmap
-import android.graphics.Canvas
-import android.graphics.Color
-import android.graphics.Paint
+import android.graphics.*
 import android.net.Uri
 import android.util.Base64
 import android.util.Log
@@ -89,6 +86,11 @@ class NotTalkRepository private constructor(context: Context){
 
     fun findByUsername(username: String): List<User>? {
         return userDao.findByUsername(username).value
+    }
+
+    fun findIconByUsername(username: String): Bitmap{
+        val bArray = userDao.findIconByUsername(username)
+        return BitmapFactory.decodeByteArray(bArray, 0, bArray.size)
     }
 
     fun insertUser(username: String) {

@@ -4,11 +4,10 @@ import android.app.Service
 import android.content.Intent
 import android.os.Build
 import android.os.IBinder
-import android.util.Log
+import androidx.annotation.RequiresApi
 import androidx.core.content.ContextCompat
 import it.unipd.dei.esp2021.nottalk.NotTalkRepository
 import it.unipd.dei.esp2021.nottalk.util.FileManager
-import it.unipd.dei.esp2021.nottalk.database.User
 import it.unipd.dei.esp2021.nottalk.util.AppNotificationManager
 import java.util.concurrent.Executor
 import java.util.concurrent.Executors
@@ -19,6 +18,7 @@ class SyncService : Service() {
     // Create an executor that executes tasks in a background thread.
     val backgroundExecutor = Executors.newSingleThreadScheduledExecutor()
 
+    @RequiresApi(Build.VERSION_CODES.R)
     override fun onStartCommand(intent: Intent, flags: Int, startId: Int): Int {
         /*
         backgroundExecutor.execute {
@@ -64,8 +64,16 @@ class SyncService : Service() {
                         }
                     }).start()
                     val nm = AppNotificationManager.get()
-                    nm.append(response.first)
-                    nm.sendNotification()
+                    val senderMes = mutableListOf("")
+                    for (i in response.first) {
+                        if(!senderMes.contains(i.fromUser)){
+                            nm.showNotification(i, false)
+                        }else{
+                            nm.showNotification(i, false, true)
+                        }
+                        senderMes.add(i.fromUser)
+                    }
+                    senderMes.clear()
                 }
             }
             catch(ex: Exception){
