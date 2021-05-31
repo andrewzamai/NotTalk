@@ -39,7 +39,7 @@ class AppNotificationManager(private val context: Context){
         }
 
         // constants
-        private const val CHANNEL_NEW_MESSAGES = "new_messages"
+        private const val CHANNEL_NEW_MESSAGES = "notTalk"
         private const val REQUEST_CONTENT = 1
         private const val REQUEST_BUBBLE = 2
     }

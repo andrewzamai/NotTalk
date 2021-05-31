@@ -153,56 +153,56 @@ class PlayerService() : Service() {
             getDrawable(R.drawable.ic_avatar)?.toBitmap()
         }
 
-        // set information about sender, profile picture, audio duration
+        // set information about Message type (Audio), Sender, Profile picture, Audio duration
         mediaSession.setMetadata(
             MediaMetadataCompat.Builder()
                 // Title
                 .putString(MediaMetadata.METADATA_KEY_TITLE, getString(R.string.PlayerTitle))
                 // Artist
                 .putString(MediaMetadata.METADATA_KEY_ARTIST, getString(R.string.PlayerArtist) + " " + username)
-                // Profile Pic
+                // Profile Picture
                 .putBitmap(MediaMetadata.METADATA_KEY_ART, bitmap)
                 // Duration
                 .putLong(MediaMetadata.METADATA_KEY_DURATION, myPlayer!!.duration.toLong())
             .build()
         )
 
-        // set information about playbackstate
+        // set information about Playback state
         mediaSession.setPlaybackState(
             PlaybackStateCompat.Builder()
                 .setState(
+                    // is playing, is paused...
                     PlaybackStateCompat.STATE_PLAYING,
-                    // Playback position
+                    // position
                     myPlayer!!.currentPosition.toLong(),
-                    // Playback speed
+                    // speed
                     myPlayer!!.playbackParams.speed
                 )
-                // isSeekable
-                //.setActions(PlaybackStateCompat.ACTION_SEEK_TO)
             .build()
         )
 
+
         mediaSession.isActive = true
 
+        // TODO: Apps targeting API Build.VERSION_CODES.P or later must request the permission android.Manifest.permission.FOREGROUND_SERVICE in order to use this API, not Dangerous
 
-        // Build a notification
-        val notification = NotificationCompat
-            .Builder(this, NotTalkApplication.AUDIO_NOTIFICATION_CHANNEL)
+        // Create a MediaStyle Notification
+        val notification = NotificationCompat.Builder(this, NotTalkApplication.AUDIO_NOTIFICATION_CHANNEL)
             // Show controls on lock screen even when user hides sensitive content
-            .setVisibility(NotificationCompat.VISIBILITY_PUBLIC)
+            //.setVisibility(NotificationCompat.VISIBILITY_PUBLIC)
             .setSmallIcon(android.R.drawable.ic_btn_speak_now)
-            // Add media control buttons that invoke intents
-            .addAction(android.R.drawable.ic_menu_revert, "Restart", getBroadcast(this, 0, Intent(this, NotificationActionsReceiver::class.java).setAction(PLAYER_RESTART), 0)) // rePlay from beginning
+            // Add media control buttons that send intents
+            .addAction(android.R.drawable.ic_menu_revert, "Restart", getBroadcast(this, 0, Intent(this, NotificationActionsReceiver::class.java).setAction(PLAYER_RESTART),0)) // rePlay from beginning
             .addAction(android.R.drawable.ic_media_play, "Play", getBroadcast(this, 0, Intent(this, NotificationActionsReceiver::class.java).setAction(PLAYER_START), 0))
             .addAction(android.R.drawable.ic_media_pause, "Pause", getBroadcast(this, 0, Intent(this, NotificationActionsReceiver::class.java).setAction(PLAYER_PAUSE), 0))
             // Apply the media style template
             .setStyle(androidx.media.app.NotificationCompat.MediaStyle()
-                .setShowActionsInCompactView(0, 1, 2)
-                .setMediaSession(mediaSession.sessionToken))
-            .setColor(resources.getColor(R.color.purple_500, resources.newTheme()))
+                .setShowActionsInCompactView(0, 1, 2) // display all 3 buttons even in compact view
+                .setMediaSession(mediaSession.sessionToken)) // provide the mediaSession Token initialized
             .build()
-        // TODO: Apps targeting API Build.VERSION_CODES.P or later must request the permission android.Manifest.permission.FOREGROUND_SERVICE in order to use this API.
         startForeground(username.hashCode(), notification) // startForeground MUST notify the user about starting playing
+
+
         //val notificationManager = NotificationManagerCompat.from(applicationContext)
         //notificationManager.notify(username.hashCode(), notification)
 
