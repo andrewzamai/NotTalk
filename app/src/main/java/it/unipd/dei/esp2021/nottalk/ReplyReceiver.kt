@@ -21,15 +21,12 @@ class ReplyReceiver : BroadcastReceiver(){
         val otherUser = intent.getStringExtra("otherUser")
         val chatId = intent.getIntExtra("chatId", 0)
 
-
-
         if (chatId > 0 && !input.isNullOrBlank()) {
             val sharedPref = context.getSharedPreferences("notTalkPref", AppCompatActivity.MODE_PRIVATE)
             val thisUser = sharedPref.getString("thisUsername", "")
             val uuid = sharedPref.getString("uuid", "")
 
             repository.sendTextMessage(thisUser!!, uuid!!, input.toString(), otherUser!!)
-
 
             AppNotificationManager.get().updateNotification(chatId)
 

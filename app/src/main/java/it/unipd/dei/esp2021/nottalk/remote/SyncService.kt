@@ -67,16 +67,17 @@ class SyncService : Service() {
                     }).start()
 
                     val nm = AppNotificationManager.get()
-                    val senderMes = mutableListOf("")
+                    val senderMes = nm.getSenderMes()
                     for (i in response.first) {
                         if(!senderMes.contains(i.fromUser)){
                             nm.showNotification(i, false)
                         }else{
                             nm.showNotification(i, false, true)
                         }
-                        senderMes.add(i.fromUser)
                     }
-                    senderMes.clear()
+                    if(true){
+
+                    }
                 }
             }
             catch(ex:Exception){

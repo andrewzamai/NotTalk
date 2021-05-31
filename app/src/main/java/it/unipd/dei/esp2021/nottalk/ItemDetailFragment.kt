@@ -28,6 +28,7 @@ import it.unipd.dei.esp2021.nottalk.database.Message
 import it.unipd.dei.esp2021.nottalk.database.User
 import it.unipd.dei.esp2021.nottalk.databinding.*
 import it.unipd.dei.esp2021.nottalk.remote.ServerAdapter
+import it.unipd.dei.esp2021.nottalk.util.AppNotificationManager
 import it.unipd.dei.esp2021.nottalk.util.FileManager
 import it.unipd.dei.esp2021.nottalk.util.PlayerService
 import java.text.SimpleDateFormat
@@ -169,6 +170,9 @@ class ItemDetailFragment : Fragment() {
         super.onStart()
 
         repository.setAsRead(thisUsername,otherUsername)
+
+        val chatId = repository.getByUsers(thisUsername,otherUsername).id
+        AppNotificationManager.get().updateNotification(chatId!!)
 
         val messageWatcher = object : TextWatcher {
             override fun beforeTextChanged(s: CharSequence?, start: Int, count: Int, after: Int) {}

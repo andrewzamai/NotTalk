@@ -30,6 +30,8 @@ class AppNotificationManager(private val context: Context){
         private const val REQUEST_CONTENT = 1
         private const val REQUEST_BUBBLE = 2
 
+        private val senderMes = mutableListOf<String>()
+
         fun initialize(context: Context){
             if(INSTANCE ==null) {
                 INSTANCE = AppNotificationManager(context)
@@ -45,31 +47,14 @@ class AppNotificationManager(private val context: Context){
     private val notificationManager: NotificationManager =
         context.getSystemService() ?: throw IllegalStateException()
 
-    /*
-    fun setUpNotificationChannels() {
-        if (notificationManager.getNotificationChannel(CHANNEL_NEW_MESSAGES) == null) {
-            notificationManager.createNotificationChannel(
-                NotificationChannel(
-                    CHANNEL_NEW_MESSAGES,
-                    context.getString(R.string.channel_new_messages),
-                    // The importance must be IMPORTANCE_HIGH to show Bubbles.
-                    NotificationManager.IMPORTANCE_HIGH
-                ).apply {
-                    description = context.getString(R.string.channel_new_messages_description)
-                }
-            )
-        }
-
+    fun getSenderMes(): List<String>{
+        return senderMes
     }
-    */
-
-    private val notificationManager: NotificationManager =
-        context.getSystemService() ?: throw IllegalStateException()
 
     @RequiresApi(Build.VERSION_CODES.R)
     fun showNotification(pendingMessages: Message, fromUser: Boolean, update: Boolean = false){
 
-
+        senderMes.add(pendingMessages.fromUser)
 
         val contentUri = "https://nottalk.esp2021.dei.unipd.it/username/${pendingMessages.fromUser}".toUri() // uri con username primo messaggio
 
@@ -78,10 +63,8 @@ class AppNotificationManager(private val context: Context){
         val icon = NotTalkRepository.get().findIconByUsername(pendingMessages.fromUser).toIcon()
         val person = Person.Builder().setName(pendingMessages.fromUser).setIcon(icon).build()
 
-        val compId1 = NotTalkRepository.get().findByUsername(pendingMessages.toUser)!!.first().id
-        val compId2 = NotTalkRepository.get().findByUsername(pendingMessages.fromUser)!!.first().id!! * 65536
 
-        val chatId: Int = compId1!! + compId2
+        val chatId = NotTalkRepository.get().getByUsers(pendingMessages.toUser, pendingMessages.fromUser).id
 
         val pendingIntent = PendingIntent.getActivity(
             context,
@@ -157,34 +140,29 @@ class AppNotificationManager(private val context: Context){
                                 pendingMessages.date,
                                 person
                             ).apply {
-                                if (pendingMessages.type != "file") {
+                                if (pendingMessages.type == "file") {
                                     setData(pendingMessages.mimeType, Uri.parse(pendingMessages.text))
                                 }
                             }
 
-                            /*if (!update) {
+                            if (!update) {
                                 addHistoricMessage(m)
                             } else {
-
-                             */
                                 addMessage(m)
-                            /*
+
                             }
-                             */
 
                     }
                     .setGroupConversation(false)
             )
             .setWhen(pendingMessages.date)
-        notificationManager!!.notify(chatId, notification.build())
+        notificationManager!!.notify(chatId!!, notification.build())
 
     }
 
-            //setStyle da implementare (facoltativo)
-
     fun updateNotification(chatId: Int) {
+        senderMes.remove(NotTalkRepository.get().getById(chatId).otherUser)
         dismissNotification(chatId)
-
     }
 
     private fun dismissNotification(id: Int) {

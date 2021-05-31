@@ -16,10 +16,7 @@ import androidx.lifecycle.LiveData
 import androidx.room.Room
 import androidx.room.RoomDatabase
 import androidx.sqlite.db.SupportSQLiteDatabase
-import it.unipd.dei.esp2021.nottalk.database.ChatDatabase
-import it.unipd.dei.esp2021.nottalk.database.Message
-import it.unipd.dei.esp2021.nottalk.database.User
-import it.unipd.dei.esp2021.nottalk.database.UserRelation
+import it.unipd.dei.esp2021.nottalk.database.*
 import it.unipd.dei.esp2021.nottalk.remote.ServerAdapter
 import kotlinx.coroutines.runBlocking
 import java.io.ByteArrayOutputStream
@@ -70,7 +67,7 @@ class NotTalkRepository private constructor(context: Context){
     // reference to an UserDao instance
     private val userDao = database.userDao()
     // reference to a UserRelationDao instance
-    private val userRelation = database.userRelationDao()
+    private val userRelationDao = database.userRelationDao()
     // reference to a MessageDao instance
     private val messageDao = database.messageDao()
 
@@ -84,16 +81,11 @@ class NotTalkRepository private constructor(context: Context){
 
     //fun getAllUsers(): LiveData<List<User>> = userDao.all // liveData enables to notify an observer about changes in the list
     fun getAllUsers(username: String): LiveData<List<User>> {
-        return userRelation.get(username)
+        return userRelationDao.get(username)
     }
 
     fun findByUsername(username: String) : User {
         return userDao.findByUsername(username)
-    }
-
-    fun findIconByUsername(username: String): Bitmap{
-        val bArray = userDao.findIconByUsername(username)
-        return BitmapFactory.decodeByteArray(bArray, 0, bArray.size)
     }
 
     fun findIconByUsername(username: String): Bitmap{
@@ -138,14 +130,14 @@ class NotTalkRepository private constructor(context: Context){
         executor.execute {
             val thisUsername = sharedPreferences.getString("thisUsername","")?:""
             if(thisUsername!=""){
-                userRelation.insert(UserRelation(thisUsername,otherUsername))
+                userRelationDao.insert(UserRelation(thisUsername,otherUsername))
             }
         }
     }
 
     fun insertRelation(ur: UserRelation){
         executor.execute {
-            userRelation.insert(ur)
+            userRelationDao.insert(ur)
         }
     }
 
@@ -153,13 +145,13 @@ class NotTalkRepository private constructor(context: Context){
         executor.execute {
             val thisUsername = sharedPreferences.getString("thisUsername","")?:""
             if(thisUsername!=""){
-                userRelation.delete(thisUsername,otherUsername)
+                userRelationDao.delete(thisUsername,otherUsername)
             }
         }
     }
 
     fun existsRelation(thisUsername: String, otherUsername: String): Boolean {
-        return userRelation.existsRelation(thisUsername,otherUsername)
+        return userRelationDao.existsRelation(thisUsername,otherUsername)
     }
 
     fun insertMessages(messages: List<Message>) {
@@ -174,7 +166,14 @@ class NotTalkRepository private constructor(context: Context){
         }
     }
 
+    // UserRelationDao adapter functions
+    fun getByUsers(thisUser: String, otherUser: String): UserRelation{
+        return userRelationDao.getByUsers(thisUser, otherUser)
+    }
 
+    fun getById(id: Int): UserRelation{
+        return userRelationDao.getById(id)
+    }
 
 // MessageDao adapter functions
     fun getConvo(thisUser: String, otherUser: String): LiveData<List<Message>> = messageDao.findConvo(thisUser, otherUser)
@@ -305,13 +304,13 @@ class NotTalkRepository private constructor(context: Context){
 
     fun deleteRelationsByThisUser(username: String){
         executor.execute {
-            userRelation.deleteAllByThisUser(username)
+            userRelationDao.deleteAllByThisUser(username)
         }
     }
 
     fun deleteRelationsByOtherUser(username: String){
         executor.execute {
-            userRelation.deleteAllByOtherUser(username)
+            userRelationDao.deleteAllByOtherUser(username)
         }
     }
 
