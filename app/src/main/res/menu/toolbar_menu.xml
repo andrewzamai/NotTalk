@@ -13,4 +13,12 @@
         android:id="@+id/delete_item"
         android:title="@string/delete_item_text"
         app:showAsAction="never"/>
+    <group android:id="@+id/group1">
+        <item
+            android:id="@+id/user_item"
+            android:icon="@drawable/ic_avatar"
+            android:title=""
+            android:enabled="false"
+            app:showAsAction="never"/>
+    </group>
 </menu>

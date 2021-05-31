@@ -6,6 +6,7 @@ import android.os.Build
 import android.os.IBinder
 import androidx.annotation.RequiresApi
 import androidx.core.content.ContextCompat
+import it.unipd.dei.esp2021.nottalk.ChatViewModel
 import it.unipd.dei.esp2021.nottalk.NotTalkRepository
 import it.unipd.dei.esp2021.nottalk.util.FileManager
 import it.unipd.dei.esp2021.nottalk.util.AppNotificationManager
@@ -16,7 +17,7 @@ import java.util.concurrent.TimeUnit
 
 class SyncService : Service() {
     // Create an executor that executes tasks in a background thread.
-    val backgroundExecutor = Executors.newSingleThreadScheduledExecutor()
+    private val backgroundExecutor = Executors.newSingleThreadScheduledExecutor()
 
     @RequiresApi(Build.VERSION_CODES.R)
     override fun onStartCommand(intent: Intent, flags: Int, startId: Int): Int {
@@ -31,7 +32,6 @@ class SyncService : Service() {
             }
         }
         */
-
         backgroundExecutor.scheduleAtFixedRate({
             try {
                 val sp1 = getSharedPreferences("notTalkPref", MODE_PRIVATE)
@@ -39,17 +39,19 @@ class SyncService : Service() {
                 val uuid = sp1.getString("uuid", "")
 
                 val sa = ServerAdapter()
-                val response = sa.checkMsg(username!!,uuid!!)
-                if(response.first.isNotEmpty()) {
-                    for(msg in response.first){
-                        if(msg.type=="file"){
+                val response = sa.checkMsg(username!!, uuid!!)
+                if (response.first.isNotEmpty()) {
+                    for (msg in response.first) {
+                        if (msg.type == "file") {
                             val path = FileManager.saveFileToStorage(
                                 applicationContext,
                                 msg.text,
                                 msg.fileName!!,
-                                msg.mimeType!!)
-                            msg.text=path
+                                msg.mimeType!!
+                            )
+                            msg.text = path
                         }
+                        msg.read = false
                     }
                     //val cd = ChatDatabase.getDatabase(applicationContext)
                     val cd = NotTalkRepository.get()
@@ -63,6 +65,7 @@ class SyncService : Service() {
                             }
                         }
                     }).start()
+
                     val nm = AppNotificationManager.get()
                     val senderMes = mutableListOf("")
                     for (i in response.first) {
@@ -76,14 +79,11 @@ class SyncService : Service() {
                     senderMes.clear()
                 }
             }
-            catch(ex: Exception){
-                print(ex.message)
+            catch(ex:Exception){
+                println(ex.message)
                 ex.printStackTrace()
             }
-            finally {
-                //STUB
-            }
-            // Your code logic goes here
+
         }, 0, DEFAULT_SYNC_INTERVAL, TimeUnit.SECONDS)
 
         return START_STICKY
@@ -97,6 +97,7 @@ class SyncService : Service() {
         backgroundExecutor.shutdown()
         super.onDestroy()
     }
+
 
     companion object {
         const val DEFAULT_SYNC_INTERVAL = 5.toLong()

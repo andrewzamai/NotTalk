@@ -1,14 +1,27 @@
 package it.unipd.dei.esp2021.nottalk
 
+import android.annotation.SuppressLint
 import android.app.Activity
 import android.app.AlertDialog
+import android.content.ClipData
 import android.content.DialogInterface
 import android.content.Intent
 import android.content.SharedPreferences
+import android.graphics.Bitmap
+import android.graphics.Color
 import android.os.Bundle
+import android.text.SpannableStringBuilder
 import android.util.Log
+import android.view.Menu
+import android.view.MenuInflater
+import android.view.MenuItem
+import android.view.View
+import android.widget.ImageView
 import android.widget.Toast
 import androidx.appcompat.app.AppCompatActivity
+import androidx.appcompat.view.menu.MenuBuilder
+import androidx.appcompat.view.menu.MenuView
+import androidx.lifecycle.LifecycleOwner
 import androidx.lifecycle.MutableLiveData
 import androidx.navigation.NavController
 import androidx.navigation.fragment.NavHostFragment
@@ -19,6 +32,8 @@ import it.unipd.dei.esp2021.nottalk.remote.ServerAdapter
 import it.unipd.dei.esp2021.nottalk.remote.SyncService
 import it.unipd.dei.esp2021.nottalk.util.PlayerService
 import java.util.concurrent.Executors
+import java.util.zip.Inflater
+
 
 /**
  * This activity will hosts the two fragments (ItemListFragment/ItemDetailFragment):
@@ -39,6 +54,9 @@ class ItemDetailHostActivity : AppCompatActivity(){
     // toolbar
     private lateinit var toolbar: androidx.appcompat.widget.Toolbar
 
+    private lateinit var userIcon: ImageView
+    //private lateinit var toolbarTitle: TextView
+
     // navController
     private lateinit var navController: NavController
 
@@ -51,6 +69,8 @@ class ItemDetailHostActivity : AppCompatActivity(){
         // View binding Android Jetpack feature
         // binding will get a reference to the layout, using dot notation is possible to get a reference to all contained ID widgets
         val binding = ActivityItemDetailBinding.inflate(layoutInflater) //ActivityItemDetailBinding is the binding class generated for activity_item_detail.xml layout, .inflate(layoutInflater) does the inflate as setContentView(R.layout.activity_item_detail)
+        userIcon = binding.userIcon
+        //toolbarTitle = binding.toolbarTitle
         val view = binding.root //get a reference to the root view
         setContentView(view)  //and make it active on the screen
 
@@ -93,9 +113,17 @@ class ItemDetailHostActivity : AppCompatActivity(){
             if(destination.id == R.id.fragment_item_detail || destination.id == R.id.item_detail_fragment){
                 toolbar.menu.clear()
             }
-            else toolbar.inflateMenu(R.menu.toolbar_menu)
+            else{
+                onCreateOptionsMenu(toolbar.menu)
+                userIcon.setBackgroundColor(0x00000000)
+                val userItem = toolbar.menu.findItem(R.id.user_item)
+                userItem.title= currentUsername.value
+                userItem.icon.setTint(getColor(R.color.NT_purple2))
+            }
         }
+        //toolbar.setTitleTextColor(0xFFFFFF)
         toolbar.title = getString(R.string.toolbar_chatLists)
+        //toolbarTitle.text = getString(R.string.toolbar_chatLists)
         toolbar.setOnMenuItemClickListener { item ->
             when (item.itemId) {
                 R.id.login_item -> {
@@ -175,6 +203,17 @@ class ItemDetailHostActivity : AppCompatActivity(){
 
     }
 
+    @SuppressLint("RestrictedApi")
+    override fun onCreateOptionsMenu(menu: Menu): Boolean {
+        if (menu is MenuBuilder) {
+            menu.setOptionalIconsVisible(true)
+            menu.isGroupDividerEnabled=true
+            menu.setGroupEnabled(R.id.group1,true)
+        }
+        menuInflater.inflate(R.menu.toolbar_menu, menu)
+        return super.onCreateOptionsMenu(menu)
+    }
+
 
     override fun onActivityResult(requestCode: Int, resultCode: Int, data: Intent?) {
         super.onActivityResult(requestCode, resultCode, data)
@@ -187,6 +226,8 @@ class ItemDetailHostActivity : AppCompatActivity(){
                 putString("thisUsername", username)
                 putString("uuid", uuid)
             }.commit()
+            val userItem = toolbar.menu.findItem(R.id.user_item)
+            userItem.title= currentUsername.value
             applicationContext.startService(Intent(this, SyncService::class.java))
         }
         if(resultCode == Activity.RESULT_CANCELED && requestCode == REQUEST_MUST_LOGIN){
@@ -214,6 +255,14 @@ class ItemDetailHostActivity : AppCompatActivity(){
         toolbar.title = title
     }
 
+    fun setUserIconToolBar(icon: Bitmap?) {
+        if (icon == null) {
+            userIcon.setImageDrawable(getDrawable(R.drawable.default_user_icon))
+        } else {
+            userIcon.setImageBitmap(icon)
+        }
+    }
+
     fun getMessageDraft(username: String): String? {
         return userMessagesMap?.get(username)
     }
@@ -227,7 +276,7 @@ class ItemDetailHostActivity : AppCompatActivity(){
 
     fun startPlayerService(uriString: String, username: String) {
         val intent = Intent(this, PlayerService::class.java)
-        intent.putExtra(PlayerService.PLAY_START, true)
+        intent.putExtra(PlayerService.PLAYER_START, true)
         intent.putExtra(PlayerService.URI_PATH, uriString)
         intent.putExtra(PlayerService.USERNAME, username)
         applicationContext.startService(intent)
@@ -246,7 +295,7 @@ class ItemDetailHostActivity : AppCompatActivity(){
                         ItemDetailFragment.ARG_ITEM_ID,
                         username
                     )
-                    navController.navigate(R.id.show_item_detail, bundle)
+                    navController.navigate(R.id.show_item_detail, bundle) //TODO: multiple fragments added on stack
                 }
             }
             /*

@@ -7,6 +7,7 @@ import android.content.Context
 import android.content.Intent
 import android.graphics.*
 import android.net.Uri
+import android.os.AsyncTask
 import android.util.Base64
 import android.util.Log
 import android.widget.Toast
@@ -20,6 +21,7 @@ import it.unipd.dei.esp2021.nottalk.database.Message
 import it.unipd.dei.esp2021.nottalk.database.User
 import it.unipd.dei.esp2021.nottalk.database.UserRelation
 import it.unipd.dei.esp2021.nottalk.remote.ServerAdapter
+import kotlinx.coroutines.runBlocking
 import java.io.ByteArrayOutputStream
 import java.io.InputStream
 import java.util.*
@@ -46,6 +48,7 @@ class NotTalkRepository private constructor(context: Context){
         DATABASE_NAME
     )   .addCallback(ChatDatabaseCallback())
         .fallbackToDestructiveMigration()
+        .allowMainThreadQueries() //TODO: ATTENTION allowed queries on main thread
         .build()
 
     private class ChatDatabaseCallback(): RoomDatabase.Callback(){
@@ -84,8 +87,13 @@ class NotTalkRepository private constructor(context: Context){
         return userRelation.get(username)
     }
 
-    fun findByUsername(username: String): List<User>? {
-        return userDao.findByUsername(username).value
+    fun findByUsername(username: String) : User {
+        return userDao.findByUsername(username)
+    }
+
+    fun findIconByUsername(username: String): Bitmap{
+        val bArray = userDao.findIconByUsername(username)
+        return BitmapFactory.decodeByteArray(bArray, 0, bArray.size)
     }
 
     fun findIconByUsername(username: String): Bitmap{
@@ -145,7 +153,7 @@ class NotTalkRepository private constructor(context: Context){
         executor.execute {
             val thisUsername = sharedPreferences.getString("thisUsername","")?:""
             if(thisUsername!=""){
-                userRelation.delete(UserRelation(thisUsername,otherUsername))
+                userRelation.delete(thisUsername,otherUsername)
             }
         }
     }
@@ -171,7 +179,19 @@ class NotTalkRepository private constructor(context: Context){
 // MessageDao adapter functions
     fun getConvo(thisUser: String, otherUser: String): LiveData<List<Message>> = messageDao.findConvo(thisUser, otherUser)
 
+    fun setAsRead(toUser: String,fromUser: String){
+        executor.execute {
+            messageDao.setAsRead(toUser,fromUser)
+        }
+    }
 
+    fun getUnreadCount(toUser: String,fromUser: String): LiveData<Int>{
+        return messageDao.getUnreadCount(toUser,fromUser)
+    }
+
+    fun getLast(toUser: String,fromUser: String): LiveData<Message>{
+        return messageDao.getLast(toUser,fromUser)
+    }
 
 // ServerAdapter functions
 
@@ -208,6 +228,9 @@ class NotTalkRepository private constructor(context: Context){
                     Log.d("Server error", uuid)
                 Log.d("Server error", response)
                 deleteMessage(id) // deletes it from local database if couldn't send it
+                context.mainExecutor.execute {
+                    Toast.makeText(context,"Error occurred, please re-login", Toast.LENGTH_LONG).show()
+                }
             }
         }).start()
     }
@@ -254,6 +277,9 @@ class NotTalkRepository private constructor(context: Context){
             }
             if (result != "ok") {
                 deleteMessage(id)
+                context.mainExecutor.execute {
+                    Toast.makeText(context,"Error occurred, please re-login", Toast.LENGTH_LONG).show()
+                }
             }
         }).start()
     }
@@ -290,8 +316,7 @@ class NotTalkRepository private constructor(context: Context){
     }
 
 
-
-// Singleton Design Pattern for this class
+    // Singleton Design Pattern for this class
     companion object{
         @SuppressLint("StaticFieldLeak")
         private var INSTANCE: NotTalkRepository? = null

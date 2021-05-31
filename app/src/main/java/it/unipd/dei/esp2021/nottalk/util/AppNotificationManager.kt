@@ -4,6 +4,8 @@ import android.annotation.SuppressLint
 import android.app.*
 import android.content.Context
 import android.content.Intent
+import android.content.LocusId
+import android.content.pm.ShortcutManager
 import android.graphics.drawable.Icon
 import android.net.Uri
 import android.os.Build
@@ -61,6 +63,8 @@ class AppNotificationManager(private val context: Context){
     }
     */
 
+    private val notificationManager: NotificationManager =
+        context.getSystemService() ?: throw IllegalStateException()
 
     @RequiresApi(Build.VERSION_CODES.R)
     fun showNotification(pendingMessages: Message, fromUser: Boolean, update: Boolean = false){
@@ -114,6 +118,7 @@ class AppNotificationManager(private val context: Context){
                     context,
                     REQUEST_CONTENT,
                     Intent(context, ItemDetailHostActivity::class.java)
+                        //.setFlags(Intent.FLAG_ACTIVITY_NEW_TASK)
                         .setAction(Intent.ACTION_VIEW)
                         .setData(contentUri),
                     PendingIntent.FLAG_UPDATE_CURRENT
@@ -175,6 +180,7 @@ class AppNotificationManager(private val context: Context){
 
     }
 
+            //setStyle da implementare (facoltativo)
 
     fun updateNotification(chatId: Int) {
         dismissNotification(chatId)

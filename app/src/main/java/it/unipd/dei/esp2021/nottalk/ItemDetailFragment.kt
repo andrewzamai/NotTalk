@@ -4,27 +4,31 @@ import android.app.Activity
 import android.app.AlertDialog
 import android.content.Context
 import android.content.Context.MODE_PRIVATE
-import android.content.DialogInterface
 import android.content.Intent
+import android.graphics.BitmapFactory
 import android.net.Uri
 import android.os.Bundle
 import android.text.Editable
 import android.text.TextWatcher
 import android.util.Log
-import androidx.fragment.app.Fragment
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
 import android.widget.*
+import androidx.constraintlayout.widget.ConstraintLayout
 import androidx.core.content.ContextCompat
+import androidx.core.graphics.drawable.toBitmap
+import androidx.core.view.marginEnd
+import androidx.fragment.app.Fragment
 import androidx.lifecycle.Observer
 import androidx.lifecycle.ViewModelProvider
 import androidx.recyclerview.widget.LinearLayoutManager
 import androidx.recyclerview.widget.RecyclerView
-import it.unipd.dei.esp2021.nottalk.util.FileManager
 import it.unipd.dei.esp2021.nottalk.database.Message
+import it.unipd.dei.esp2021.nottalk.database.User
 import it.unipd.dei.esp2021.nottalk.databinding.*
 import it.unipd.dei.esp2021.nottalk.remote.ServerAdapter
+import it.unipd.dei.esp2021.nottalk.util.FileManager
 import it.unipd.dei.esp2021.nottalk.util.PlayerService
 import java.text.SimpleDateFormat
 import java.util.*
@@ -40,6 +44,7 @@ class ItemDetailFragment : Fragment() {
 
     // reference to Fragment View
     private var _binding: FragmentItemDetailBinding? = null
+
     // editText view reference
     private lateinit var messageEditText: EditText
     // sendButton view reference
@@ -139,6 +144,22 @@ class ItemDetailFragment : Fragment() {
         super.onActivityCreated(savedInstanceState)
         val activity = activity as ItemDetailHostActivity
         activity.setToolBarTitle(otherUsername)
+
+        val user: User? = otherUsername.let { NotTalkRepository.get().findByUsername(it) }
+        Log.d("ItemDetailFragment", user.toString())
+        // retrieves its profile Bitmap picture to set it as notification media picture
+        val bArray = user?.picture
+        val bitmap = if (bArray != null) {
+            BitmapFactory.decodeByteArray(bArray, 0, bArray.size)
+        } else {
+            context?.getDrawable(R.drawable.ic_avatar)?.toBitmap()
+        }
+
+        if (bitmap != null) {
+            activity.setUserIconToolBar(bitmap)
+        }
+
+
         // retrieves messageDraft of this chat, if any, and sets it in messageEditText
         val messageDraft = activity.getMessageDraft(otherUsername)
         if (messageDraft != null) messageEditText.setText(messageDraft)
@@ -146,6 +167,8 @@ class ItemDetailFragment : Fragment() {
 
     override fun onStart() {
         super.onStart()
+
+        repository.setAsRead(thisUsername,otherUsername)
 
         val messageWatcher = object : TextWatcher {
             override fun beforeTextChanged(s: CharSequence?, start: Int, count: Int, after: Int) {}
@@ -228,6 +251,7 @@ class ItemDetailFragment : Fragment() {
 
         val activity = activity as ItemDetailHostActivity
         activity.setToolBarTitle(getString(R.string.toolbar_chatLists))
+        activity.setUserIconToolBar(null)
     }
 
 
@@ -287,6 +311,7 @@ class ItemDetailFragment : Fragment() {
         const val TEXT_MESSAGE = 2
         const val IMAGE_MESSAGE = 4
         const val AUDIO_MESSAGE = 6
+        const val FILE_MESSAGE = 8
     }
 
     // inner classes MessageHolder and ChatAdapter for ChatRecyclerView
@@ -317,6 +342,12 @@ class ItemDetailFragment : Fragment() {
             messageText.text = message.text
 
         }
+        init{
+            this.itemView.setOnLongClickListener {
+                msgLongPress(message.id?.toLong()!!)
+                true
+            }
+        }
 
     }
 
@@ -327,16 +358,20 @@ class ItemDetailFragment : Fragment() {
         private val messageDate: TextView = binding.messageDate
         private val image: ImageView = binding.image
 
-        fun bind(message: Message){
+        fun bind(message: Message) {
             this.message = message
 
-            if(this.message.fromUser == thisUsername) {
+            if (this.message.fromUser == thisUsername) {
                 messageSender.text = "You" //TODO: change hardcoded string
-                this.itemView.background = context?.let { ContextCompat.getDrawable(it, R.drawable.outgoing_message_container) }
+                this.itemView.background = context?.let {
+                    ContextCompat.getDrawable(it, R.drawable.outgoing_message_container)
+                }
                 //messageText.textAlignment = View.TEXT_ALIGNMENT_VIEW_END //TODO: justify right
-            } else{
+            } else {
                 messageSender.text = otherUsername
-                this.itemView.background = context?.let { ContextCompat.getDrawable(it, R.drawable.incoming_message_container) }
+                this.itemView.background = context?.let {
+                    ContextCompat.getDrawable(it, R.drawable.incoming_message_container)
+                }
             }
 
             val currentDate = Date(this.message.date)
@@ -344,10 +379,25 @@ class ItemDetailFragment : Fragment() {
             messageDate.text = simpleDateFormat.format(currentDate)
 
             image.adjustViewBounds = true
-            image.maxHeight = 500
-            image.maxWidth = 500
+            image.maxHeight = 600
+            image.maxWidth = 600
             image.setImageURI(Uri.parse(message.text))
             Log.d("UsernameImageBug", message.fromUser)
+
+        }
+
+        init {
+            image.setOnClickListener {
+                val intent = Intent()
+                intent.action = Intent.ACTION_VIEW
+                intent.setDataAndType(Uri.parse(message.text), message.mimeType)
+                intent.addFlags(Intent.FLAG_GRANT_READ_URI_PERMISSION)
+                startActivity(intent)
+            }
+            this.itemView.setOnLongClickListener {
+                msgLongPress(message.id?.toLong()!!)
+                true
+            }
 
         }
 
@@ -392,9 +442,55 @@ class ItemDetailFragment : Fragment() {
                 val intent = Intent(activity!!.applicationContext, PlayerService::class.java)
                 activity!!.applicationContext.stopService(intent)
             }
+            this.itemView.setOnLongClickListener {
+                msgLongPress(message.id?.toLong()!!)
+                true
+            }
 
         }
 
+    }
+
+    private inner class MessageHolderFile(binding: FileItemChatContentBinding) : RecyclerView.ViewHolder(binding.root) {
+
+        private lateinit var message: Message // stores a reference to the Message object
+        private val messageSender: TextView = binding.messageSender
+        private val messageDate: TextView = binding.messageDate
+        private val fileName: TextView = binding.fileName
+        private val fileView: ConstraintLayout = binding.fileView
+
+        fun bind(message: Message){
+            this.message = message
+
+            if(this.message.fromUser == thisUsername) {
+                messageSender.text = "You" //TODO: change hardcoded string
+                this.itemView.background = context?.let { ContextCompat.getDrawable(it, R.drawable.outgoing_message_container) }
+                //messageText.textAlignment = View.TEXT_ALIGNMENT_VIEW_END //TODO: justify right
+            } else{
+                messageSender.text = otherUsername
+                this.itemView.background = context?.let { ContextCompat.getDrawable(it, R.drawable.incoming_message_container) }
+            }
+
+            val currentDate = Date(this.message.date)
+            val simpleDateFormat = SimpleDateFormat("dd-MM-yyyy HH:mm")
+            messageDate.text = simpleDateFormat.format(currentDate)
+            fileName.text = message.fileName
+        }
+
+        init{
+            fileView.setOnClickListener {
+                Log.d("ItemDetail", "File Button pressed")
+                val intent = Intent()
+                intent.action = Intent.ACTION_VIEW
+                intent.setDataAndType(Uri.parse(message.text), message.mimeType)
+                intent.addFlags(Intent.FLAG_GRANT_READ_URI_PERMISSION)
+                startActivity(intent)
+            }
+            this.itemView.setOnLongClickListener {
+                msgLongPress(message.id?.toLong()!!)
+                true
+            }
+        }
     }
 
 
@@ -411,6 +507,7 @@ class ItemDetailFragment : Fragment() {
                     return IMAGE_MESSAGE
                 else if (messages[position].mimeType!!.split("/")[0] == "audio")
                     return AUDIO_MESSAGE
+                else return FILE_MESSAGE
             }
 
             return TEXT_MESSAGE // default
@@ -429,9 +526,13 @@ class ItemDetailFragment : Fragment() {
                     val binding = ImageItemChatContentBinding.inflate(LayoutInflater.from(parent.context), parent, false)
                     return MessageHolderImage(binding)
                 }
-                else -> {
+                AUDIO_MESSAGE -> {
                     val binding = AudioItemChatContentBinding.inflate(LayoutInflater.from(parent.context), parent, false)
                     return MessageHolderAudio(binding)
+                }
+                else -> {
+                    val binding = FileItemChatContentBinding.inflate(LayoutInflater.from(parent.context), parent, false)
+                    return MessageHolderFile(binding)
                 }
             }
 
@@ -450,9 +551,13 @@ class ItemDetailFragment : Fragment() {
                     val holderImage = holder as MessageHolderImage
                     holderImage.bind(messages[position])
                 }
-                else -> {
+                AUDIO_MESSAGE -> {
                     val holderAudio = holder as MessageHolderAudio
                     holderAudio.bind(messages[position])
+                }
+                else -> {
+                    val holderFile = holder as MessageHolderFile
+                    holderFile.bind(messages[position])
                 }
             }
         }
@@ -470,5 +575,15 @@ class ItemDetailFragment : Fragment() {
         chatRecyclerView.adapter = adapter
     }
 
+    private fun msgLongPress(id: Long) {
+        val alert = AlertDialog.Builder(context)
+        alert.setTitle("Delete message")
+        alert.setMessage("Are you sure to delete this message?")
+        alert.setPositiveButton("Yes") { _, _ ->
+            NotTalkRepository.get().deleteMessage(id)
+        }
+        alert.setNegativeButton("No") { _, _ -> }
+        alert.show()
+    }
 
 }

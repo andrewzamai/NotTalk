@@ -31,12 +31,15 @@ class NotTalkApplication : Application() {
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
             val name = "AudioNotificationChannel"
             val importance = NotificationManager.IMPORTANCE_HIGH
-            val channel = NotificationChannel("audioNotTalk", name, importance)
+            val channel = NotificationChannel(AUDIO_NOTIFICATION_CHANNEL, name, importance)
             val notificationManager: NotificationManager = getSystemService(NotificationManager::class.java)
             notificationManager.createNotificationChannel(channel)
         }
 
-
-
     }
+
+    companion object {
+        const val AUDIO_NOTIFICATION_CHANNEL = "audioNotTalk"
+    }
+
 }

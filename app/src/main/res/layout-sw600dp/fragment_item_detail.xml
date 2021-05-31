@@ -13,6 +13,7 @@
     android:orientation="vertical"
     android:gravity="center"
     tools:context=".ItemDetailHostActivity"
+    android:background="@drawable/back"
     android:weightSum="10">
 
     <androidx.recyclerview.widget.RecyclerView
