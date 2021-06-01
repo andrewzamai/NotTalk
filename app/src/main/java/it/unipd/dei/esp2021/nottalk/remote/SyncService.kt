@@ -93,14 +93,19 @@ class SyncService : Service() {
                     val nm = AppNotificationManager.get()
                     val senderMes = nm.getSenderMes()
                     for (i in response.first) {
-                        if(!senderMes.contains(i.fromUser)){
-                            nm.showNotification(i, false)
+                        if(nm.canBubble(i.fromUser)) {
+                            if (!senderMes.contains(i.fromUser)) {
+                                nm.showNotification(i, true)
+                            } else {
+                                nm.showNotification(i, true, true)
+                            }
                         }else{
-                            nm.showNotification(i, false, true)
+                            if (!senderMes.contains(i.fromUser)) {
+                                nm.showNotification(i, false)
+                            } else {
+                                nm.showNotification(i, false, true)
+                            }
                         }
-                    }
-                    if(true){
-
                     }
                 }
             }

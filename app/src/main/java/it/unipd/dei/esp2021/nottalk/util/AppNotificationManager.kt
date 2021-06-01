@@ -16,6 +16,7 @@ import androidx.core.graphics.drawable.toIcon
 import androidx.core.net.toUri
 import it.unipd.dei.esp2021.nottalk.*
 import it.unipd.dei.esp2021.nottalk.database.Message
+import it.unipd.dei.esp2021.nottalk.database.User
 import java.lang.IllegalStateException
 
 class AppNotificationManager(private val context: Context){
@@ -66,14 +67,16 @@ class AppNotificationManager(private val context: Context){
 
         val chatId = NotTalkRepository.get().getByUsers(pendingMessages.toUser, pendingMessages.fromUser).id
 
-        val pendingIntent = PendingIntent.getActivity(
+        val pendingIntent = PendingIntent.getBroadcast(
             context,
-            REQUEST_BUBBLE,
+            REQUEST_CONTENT,
             Intent(context, BubbleActivity::class.java)
                 .setAction(Intent.ACTION_VIEW)
-                .setData(contentUri),
+                .putExtra("chatId",chatId)
+                .putExtra("otherUser", pendingMessages.fromUser),
             PendingIntent.FLAG_UPDATE_CURRENT
         )
+
 
         val notification = Notification
             .Builder(context, CHANNEL_NEW_MESSAGES)
@@ -94,6 +97,8 @@ class AppNotificationManager(private val context: Context){
             .setContentTitle(pendingMessages.fromUser)
             .setSmallIcon(android.R.drawable.stat_notify_chat)
             .setCategory(Notification.CATEGORY_MESSAGE)
+            .setShortcutId(pendingMessages.fromUser)
+            .setLocusId(LocusId(pendingMessages.fromUser))
             .addPerson(person)
             .setShowWhen(true)
             .setContentIntent(
@@ -145,10 +150,10 @@ class AppNotificationManager(private val context: Context){
                             }
                         }
 
-                        if (!update) {
-                            addHistoricMessage(m)
-                        } else {
-                            addMessage(m)
+                            if (update) {
+                                addHistoricMessage(m)
+                            } else {
+                                addMessage(m)
 
                         }
 
@@ -158,6 +163,14 @@ class AppNotificationManager(private val context: Context){
             .setWhen(pendingMessages.date)
         notificationManager!!.notify(chatId!!, notification.build())
 
+    }
+
+    fun canBubble(user: String): Boolean {
+        val channel = notificationManager.getNotificationChannel(
+            CHANNEL_NEW_MESSAGES,
+            user
+        )
+        return notificationManager.areBubblesAllowed() || channel?.canBubble() == true
     }
 
     fun updateNotification(chatId: Int) {
