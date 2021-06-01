@@ -135,22 +135,22 @@ class AppNotificationManager(private val context: Context){
             .setStyle(
                 Notification.MessagingStyle(user)
                     .apply {
-                            val m = Notification.MessagingStyle.Message(
-                                pendingMessages.text,
-                                pendingMessages.date,
-                                person
-                            ).apply {
-                                if (pendingMessages.type == "file") {
-                                    setData(pendingMessages.mimeType, Uri.parse(pendingMessages.text))
-                                }
+                        val m = Notification.MessagingStyle.Message(
+                            pendingMessages.text,
+                            pendingMessages.date,
+                            person
+                        ).apply {
+                            if (pendingMessages.type == "file") {
+                                setData(pendingMessages.mimeType, Uri.parse(pendingMessages.text))
                             }
+                        }
 
-                            if (!update) {
-                                addHistoricMessage(m)
-                            } else {
-                                addMessage(m)
+                        if (!update) {
+                            addHistoricMessage(m)
+                        } else {
+                            addMessage(m)
 
-                            }
+                        }
 
                     }
                     .setGroupConversation(false)

@@ -6,10 +6,6 @@
     android:id="@+id/item_detail_container"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
-    android:paddingLeft="2dp"
-    android:paddingRight="2dp"
-    android:paddingTop="2dp"
-    android:paddingBottom="2dp"
     android:orientation="vertical"
     android:gravity="center"
     tools:context=".ItemDetailHostActivity"
@@ -36,7 +32,7 @@
         android:paddingTop="2dp"
         android:paddingBottom="2dp"
         android:orientation="horizontal"
-        android:gravity="center_horizontal"
+        android:gravity="center_vertical"
         android:weightSum="10"
         tools:context=".ItemDetailHostActivity"
         android:layout_weight="1">
@@ -46,25 +42,35 @@
             android:layout_width="0dp"
             android:layout_height="match_parent"
             android:layout_marginStart="4dp"
-            android:background="@color/white"
+            android:layout_marginTop="2dp"
+            android:layout_marginBottom="2dp"
+            android:background="@drawable/edittext_background"
+            android:hint="@string/digitSomethingHint"
+            android:paddingStart="8dp"
+            android:paddingEnd ="8dp"
             android:layout_weight="7"/>
-
-        <ImageButton
-            android:id="@+id/sendButton"
-            android:layout_width="0dp"
-            android:layout_height="wrap_content"
-            android:layout_weight="1.5"
-            app:srcCompat="@android:drawable/ic_menu_send" />
 
         <ImageButton
             android:id="@+id/fileButton"
             android:layout_width="0dp"
-            android:layout_height="wrap_content"
+            android:layout_height="match_parent"
             android:layout_weight="1.5"
-            android:layout_marginEnd="4dp"
-            app:srcCompat="@android:drawable/ic_menu_gallery" />
+            android:layout_marginEnd="10dp"
+            android:backgroundTint="@color/light_gray"
+            app:srcCompat="@drawable/ic_attachment" />
+
+        <ImageButton
+            android:id="@+id/sendButton"
+            android:layout_width="0dp"
+            android:layout_height="match_parent"
+            android:background="@drawable/sendtext_background"
+            android:backgroundTint="@color/NT_purple2"
+            app:srcCompat="@drawable/ic_send"
+            android:layout_weight="1.5"/>
 
     </LinearLayout>
+
+
 
 
 </LinearLayout>

@@ -22,7 +22,7 @@ class NotTalkApplication : Application() {
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
             val name = "DefaultNotificationChannel"
             val importance = NotificationManager.IMPORTANCE_HIGH // must be high to have ChatBubbles
-            val channel = NotificationChannel("notTalk", name, importance)
+            val channel = NotificationChannel(MESSAGE_NOTIFICATION_CHANNEL, name, importance)
             val notificationManager: NotificationManager = getSystemService(NotificationManager::class.java)
             notificationManager.createNotificationChannel(channel)
         }
@@ -50,6 +50,7 @@ class NotTalkApplication : Application() {
     companion object {
         const val AUDIO_NOTIFICATION_CHANNEL = "audioNotTalk"
         const val FOREGROUND_CHANNEL = "foregroundNotTalk"
+        const val MESSAGE_NOTIFICATION_CHANNEL = "notTalk"
     }
 
 }

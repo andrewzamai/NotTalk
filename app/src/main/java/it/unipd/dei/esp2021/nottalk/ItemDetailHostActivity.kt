@@ -22,6 +22,7 @@ import androidx.navigation.ui.setupWithNavController
 import it.unipd.dei.esp2021.nottalk.databinding.ActivityItemDetailBinding
 import it.unipd.dei.esp2021.nottalk.remote.ServerAdapter
 import it.unipd.dei.esp2021.nottalk.remote.SyncService
+import it.unipd.dei.esp2021.nottalk.util.AppNotificationManager
 import it.unipd.dei.esp2021.nottalk.util.PlayerService
 import java.util.concurrent.Executors
 import kotlin.system.exitProcess
@@ -34,12 +35,13 @@ import kotlin.system.exitProcess
 class ItemDetailHostActivity : AppCompatActivity(){
 
     companion object{
-        val REQUEST_LOGIN = 10
-        val REQUEST_MUST_LOGIN = 11
-        val SERVICE_STOP = 20
+        const val REQUEST_LOGIN = 10
+        const val REQUEST_MUST_LOGIN = 11
+        const val SERVICE_STOP = 20
 
         val currentUsername = MutableLiveData<String>()
     }
+
 
     // reference to sharedPreferences
     private lateinit var sharedPref: SharedPreferences
@@ -47,8 +49,8 @@ class ItemDetailHostActivity : AppCompatActivity(){
     // toolbar
     private lateinit var toolbar: androidx.appcompat.widget.Toolbar
 
+    // userIcon in toolbar
     private lateinit var userIcon: ImageView
-    //private lateinit var toolbarTitle: TextView
 
     // navController
     private lateinit var navController: NavController
@@ -56,23 +58,21 @@ class ItemDetailHostActivity : AppCompatActivity(){
     // hashMap containing "username-draftMessage" elements to not lose editText content through configuration changes, activity stop and fragment navigation
     private var userMessagesMap: HashMap<String, String>? = null
 
+
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
 
-        // View binding Android Jetpack feature
-        // binding will get a reference to the layout, using dot notation is possible to get a reference to all contained ID widgets
+        // View binding Android Jetpack feature: binding will get a reference to the layout, using dot notation is possible to get a reference to all contained ID widgets
         val binding = ActivityItemDetailBinding.inflate(layoutInflater) //ActivityItemDetailBinding is the binding class generated for activity_item_detail.xml layout, .inflate(layoutInflater) does the inflate as setContentView(R.layout.activity_item_detail)
         userIcon = binding.userIcon
-        //toolbarTitle = binding.toolbarTitle
         val view = binding.root //get a reference to the root view
         setContentView(view)  //and make it active on the screen
 
-        // saves in sharedPreferences this user's username
-        // TODO: change from hardcoded username admin in username specified from user when registering
+        // saves in sharedPreferences this user username
         sharedPref = getSharedPreferences("notTalkPref", MODE_PRIVATE)
         if (sharedPref.getString("thisUsername", "") == "") {
             applicationContext.stopService(Intent(this, SyncService::class.java))
-            Toast.makeText(applicationContext,"Please log in",Toast.LENGTH_LONG).show()
+            Toast.makeText(applicationContext, R.string.ServiceRequestLogin, Toast.LENGTH_LONG).show()
             val intent = Intent(this, LoginActivity::class.java)
             intent.putExtra("requestCode", REQUEST_MUST_LOGIN)
             startActivityForResult(intent, REQUEST_MUST_LOGIN)
@@ -81,11 +81,7 @@ class ItemDetailHostActivity : AppCompatActivity(){
             currentUsername.value= sharedPref.getString("thisUsername","")
             applicationContext.startForegroundService(Intent(this, SyncService::class.java))
         }
-            /*
-            putString("thisUsername", "admin")
-            putString("uuid", "331e698e-b33e-11eb-8632-6224d93e4c38")
-            */
-        //}.apply()
+
 
         // when re-creating the activity after destroy the useMessageMap is retrieved from savedInstanceState bundle
         userMessagesMap = savedInstanceState?.getSerializable("userMessagesMap") as? HashMap<String, String>
@@ -101,7 +97,7 @@ class ItemDetailHostActivity : AppCompatActivity(){
         toolbar = binding.toolbar // gets reference
         val appBarConfiguration: AppBarConfiguration = AppBarConfiguration(navController.graph)
         toolbar.setupWithNavController(navController, appBarConfiguration)
-        //toolbar.inflateMenu(R.menu.toolbar_menu)
+
         navController.addOnDestinationChangedListener { _, destination, _ ->
             if(destination.id == R.id.fragment_item_detail || destination.id == R.id.item_detail_fragment){
                 toolbar.menu.clear()
@@ -114,9 +110,7 @@ class ItemDetailHostActivity : AppCompatActivity(){
                 userItem.icon.setTint(getColor(R.color.NT_purple2))
             }
         }
-        //toolbar.setTitleTextColor(0xFFFFFF)
         toolbar.title = getString(R.string.toolbar_chatLists)
-        //toolbarTitle.text = getString(R.string.toolbar_chatLists)
         toolbar.setOnMenuItemClickListener { item ->
             when (item.itemId) {
                 R.id.login_item -> {
@@ -190,10 +184,6 @@ class ItemDetailHostActivity : AppCompatActivity(){
         // to open ItemDetailFragment chat of user from notification
         intent?.let(::handleIntent)
 
-        // start syncService
-        //applicationContext.startService(Intent(this, SyncService::class.java))
-
-
     }
 
     @SuppressLint("RestrictedApi")
@@ -228,13 +218,14 @@ class ItemDetailHostActivity : AppCompatActivity(){
         }
     }
 
-
+    // saves userMessagesMap of draft messages
     override fun onSaveInstanceState(outState: Bundle) {
         super.onSaveInstanceState(outState)
         if (!userMessagesMap.isNullOrEmpty()) {
             outState.putSerializable("userMessagesMap", userMessagesMap)
         }
     }
+
 
     override fun onNewIntent(intent: Intent) {
         super.onNewIntent(intent)
@@ -251,11 +242,12 @@ class ItemDetailHostActivity : AppCompatActivity(){
 /*----------------------------------------------- HELPER FUNCTIONS -----------------------------------------------------------*/
 
 
-
+    // to set toolbar title
     fun setToolBarTitle(title: String) {
         toolbar.title = title
     }
 
+    // to set userIcon in toolbar
     fun setUserIconToolBar(icon: Bitmap?) {
         if (icon == null) {
             userIcon.setImageDrawable(getDrawable(R.drawable.default_user_icon))
@@ -264,10 +256,12 @@ class ItemDetailHostActivity : AppCompatActivity(){
         }
     }
 
+    // get message draft given username
     fun getMessageDraft(username: String): String? {
         return userMessagesMap?.get(username)
     }
 
+    // save message draft in userMessagesMap
     fun saveMessageDraft(username: String, textMessage: String) {
         if (userMessagesMap == null) {
             userMessagesMap = HashMap()
@@ -275,6 +269,7 @@ class ItemDetailHostActivity : AppCompatActivity(){
         userMessagesMap!!.put(username, textMessage)
     }
 
+    // starts PlayerService given audio message sender and uriString of the content to play
     fun startPlayerService(uriString: String, username: String) {
         val intent = Intent(this, PlayerService::class.java)
         intent.putExtra(PlayerService.PLAYER_START, true)
@@ -283,21 +278,32 @@ class ItemDetailHostActivity : AppCompatActivity(){
         applicationContext.startService(intent)
     }
 
-
+    // navigates to correct username chat fragment when opening activity from notification
     private fun handleIntent(intent: Intent) {
         when (intent.action) {
 
             Intent.ACTION_VIEW -> {
                 val username = intent.data?.lastPathSegment
                 if (username != null) {
-                    Log.d("Activity started by intent", username)
+                    Log.d("ItemDetailHostActivity started from notification intent", username)
                     val bundle = Bundle()
                     bundle.putString(
                         ItemDetailFragment.ARG_ITEM_ID,
                         username
                     )
-                    navController.navigate(R.id.show_item_detail, bundle) //TODO: multiple fragments added on stack
+                    navController.navigate(R.id.show_item_detail, bundle)
+
+                    /*
+                    // delete notification
+                    val chatId = currentUsername.value?.let { NotTalkRepository.get().getByUsers(it, username).id }
+                    if (chatId != null) {
+                        AppNotificationManager.get().updateNotification(chatId)
+                    }
+                    */
+
                 }
+
+
             }
             //If close button is pressed on foreground notification
             SyncService.STOP_SERVICE -> {

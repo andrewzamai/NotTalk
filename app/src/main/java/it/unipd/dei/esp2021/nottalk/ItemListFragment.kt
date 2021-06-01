@@ -48,6 +48,8 @@ class ItemListFragment : Fragment() {
 
     // reference to recyclerview
     private lateinit var usersRecyclerView: RecyclerView
+
+    // floating action button to add new user
     private lateinit var floatingAddUserButton: FloatingActionButton
 
     // reference to the (singleton) notTalkRepository instance
@@ -80,16 +82,6 @@ class ItemListFragment : Fragment() {
         usersRecyclerView.adapter = adapter // pass an adapter (initially emptyList)
 
         floatingAddUserButton = binding.adduserButton
-
-        // manually insert some users in the database (gives error if already present)
-        //if(userListViewModel.userListLiveData.value.isNullOrEmpty()) {
-            //userListViewModel.insertUser(User("Andrew"))
-            //userListViewModel.insertUser(User("Filippo"))
-            //userListViewModel.insertUser(User("Alessandro"))
-            //userListViewModel.insertUser(User("Daniele"))
-        //}
-
-        //userListViewModel.insertUser(User("Gianni"))
 
         return binding.root
     }
@@ -250,8 +242,8 @@ class ItemListFragment : Fragment() {
             }).start()
         }
 
+        // click on user to navigate to chat
         override fun onClick(v: View?) {
-
             // uses a bundle to communicate between listFragment and detailFragment
             // the selected username is saved in the bundle and passed as argument to the detailFragment
             val bundle = Bundle()
@@ -270,6 +262,7 @@ class ItemListFragment : Fragment() {
             }
         }
 
+        // long press to delete user/associated chat
         override fun onLongClick(v: View?): Boolean {
             val alert = AlertDialog.Builder(context)
             alert.setTitle("Delete chat")
@@ -302,6 +295,7 @@ class ItemListFragment : Fragment() {
         }
 
     }
+
 
     // called in OnViewCreated to refresh the recycler list
     private fun updateUI(users: List<User>){

@@ -37,7 +37,7 @@ private const val DATABASE_NAME = "chat-database"
  * similarly to an Adapter pattern store a reference to an object and provides functions which in turn call the right function.
  * Sometimes this functions need no more code, other times need access to a separated thread to execute.
  */
-class NotTalkRepository private constructor(context: Context){
+class NotTalkRepository private constructor(private val context: Context){
 
     private val database: ChatDatabase = Room.databaseBuilder(
         context.applicationContext,
@@ -60,7 +60,6 @@ class NotTalkRepository private constructor(context: Context){
     }
 
 
-    private val context = context
     // reference to a serverAdapter instance, one single instance accessed from a NotTalkRepository object
     private val server: ServerAdapter = ServerAdapter()
 
@@ -77,12 +76,9 @@ class NotTalkRepository private constructor(context: Context){
     private val sharedPreferences = context.getSharedPreferences("notTalkPref", Service.MODE_PRIVATE)
 
 
-// UserDao adapter functions
+/*------------------------------------------------------------------------------------ UserDao adapter functions ------------------------------------------------------------------------------------*/
 
     //fun getAllUsers(): LiveData<List<User>> = userDao.all // liveData enables to notify an observer about changes in the list
-    fun getAllUsers(username: String): LiveData<List<User>> {
-        return userRelationDao.get(username)
-    }
 
     fun findByUsername(username: String) : User {
         return userDao.findByUsername(username)
@@ -126,6 +122,8 @@ class NotTalkRepository private constructor(context: Context){
         }
     }
 
+/*------------------------------------------------------------------------------------ UserRelationDao adapter functions ------------------------------------------------------------------------------------*/
+
     fun createRelation(otherUsername: String){
         executor.execute {
             val thisUsername = sharedPreferences.getString("thisUsername","")?:""
@@ -154,6 +152,32 @@ class NotTalkRepository private constructor(context: Context){
         return userRelationDao.existsRelation(thisUsername,otherUsername)
     }
 
+    fun getAllUsers(username: String): LiveData<List<User>> {
+        return userRelationDao.get(username)
+    }
+
+    fun getByUsers(thisUser: String, otherUser: String): UserRelation{
+        return userRelationDao.getByUsers(thisUser, otherUser)
+    }
+
+    fun getById(id: Int): UserRelation{
+        return userRelationDao.getById(id)
+    }
+
+    fun deleteRelationsByThisUser(username: String){
+        executor.execute {
+            userRelationDao.deleteAllByThisUser(username)
+        }
+    }
+
+    fun deleteRelationsByOtherUser(username: String){
+        executor.execute {
+            userRelationDao.deleteAllByOtherUser(username)
+        }
+    }
+
+/*------------------------------------------------------------------------------------ MessageDao adapter functions ------------------------------------------------------------------------------------*/
+
     fun insertMessages(messages: List<Message>) {
         executor.execute {
             messageDao.insertAll(messages)
@@ -166,16 +190,6 @@ class NotTalkRepository private constructor(context: Context){
         }
     }
 
-    // UserRelationDao adapter functions
-    fun getByUsers(thisUser: String, otherUser: String): UserRelation{
-        return userRelationDao.getByUsers(thisUser, otherUser)
-    }
-
-    fun getById(id: Int): UserRelation{
-        return userRelationDao.getById(id)
-    }
-
-// MessageDao adapter functions
     fun getConvo(thisUser: String, otherUser: String): LiveData<List<Message>> = messageDao.findConvo(thisUser, otherUser)
 
     fun setAsRead(toUser: String,fromUser: String){
@@ -192,7 +206,27 @@ class NotTalkRepository private constructor(context: Context){
         return messageDao.getLast(toUser,fromUser)
     }
 
-// ServerAdapter functions
+    // to delete a message from the database
+    fun deleteMessage(id: Long){
+        executor.execute {
+            messageDao.deleteById(id)
+        }
+    }
+
+    fun deleteByUserTo(toUser: String){
+        executor.execute {
+            messageDao.deleteByUserTo(toUser)
+        }
+    }
+
+    fun deleteByUserFrom(fromUser: String){
+        executor.execute {
+            messageDao.deleteByUserFrom(fromUser)
+        }
+    }
+
+
+/*------------------------------------------------------------------------------------ Server adapter functions ------------------------------------------------------------------------------------*/
 
     // to send a text message
     fun sendTextMessage(thisUsername: String, uuid: String, text: String, otherUsername: String){
@@ -283,36 +317,7 @@ class NotTalkRepository private constructor(context: Context){
         }).start()
     }
 
-    // to delete a message from the database
-    fun deleteMessage(id: Long){
-        executor.execute {
-            messageDao.deleteById(id)
-        }
-    }
 
-    fun deleteByUserTo(toUser: String){
-        executor.execute {
-            messageDao.deleteByUserTo(toUser)
-        }
-    }
-
-    fun deleteByUserFrom(fromUser: String){
-        executor.execute {
-            messageDao.deleteByUserFrom(fromUser)
-        }
-    }
-
-    fun deleteRelationsByThisUser(username: String){
-        executor.execute {
-            userRelationDao.deleteAllByThisUser(username)
-        }
-    }
-
-    fun deleteRelationsByOtherUser(username: String){
-        executor.execute {
-            userRelationDao.deleteAllByOtherUser(username)
-        }
-    }
 
 
     // Singleton Design Pattern for this class

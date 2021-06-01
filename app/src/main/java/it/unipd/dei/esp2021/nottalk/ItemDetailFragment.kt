@@ -43,6 +43,11 @@ import java.util.concurrent.Executors
  */
 class ItemDetailFragment : Fragment() {
 
+    // since usernames are unique it's possible to re-create a User from its username
+    private lateinit var otherUsername: String // receiver (user's chat pressed in listFragment)
+    private lateinit var thisUsername: String // sender (this application user)
+    private lateinit var uuid: String // uuid of this application user (sender)
+
     // reference to Fragment View
     private var _binding: FragmentItemDetailBinding? = null
 
@@ -50,15 +55,11 @@ class ItemDetailFragment : Fragment() {
     private lateinit var messageEditText: EditText
     // sendButton view reference
     private lateinit var sendButton: ImageButton
+    // retrieve multimedia button reference
     private lateinit var fileButton: ImageButton
 
     // reference to the (singleton) notTalkRepository instance
     private val repository: NotTalkRepository = NotTalkRepository.get()
-
-    // since usernames are unique it's possible to re-create a User from its username
-    private lateinit var otherUsername: String // receiver (user's chat pressed in listFragment)
-    private lateinit var thisUsername: String // sender (this application user)
-    private lateinit var uuid: String // uuid of this application user (sender)
 
     // reference to chat's recyclerView
     private lateinit var chatRecyclerView: RecyclerView
@@ -74,7 +75,7 @@ class ItemDetailFragment : Fragment() {
     private val binding get() = _binding!!
 
 
-    // Fragment Lifecycle methods override
+// Fragment Lifecycle methods override
 
     override fun onAttach(context: Context) {
         super.onAttach(context)
@@ -112,15 +113,10 @@ class ItemDetailFragment : Fragment() {
 
         Log.d("ItemDetailFragment", "ItemDetailFragment Created and Inflated, Otherusername: ${otherUsername}")
 
-        // TODO: Modificare layout tablet
+
         messageEditText = binding.editText
         sendButton = binding.sendButton
         fileButton = binding.fileButton
-
-        // retrieves editText content if in onSaveInstanceState
-        // could have done it in onCreate but messageEditText reference was not yet get
-        //val messageText = savedInstanceState?.getString(KEY_MESSAGE).toString()
-        //if (messageText != "null") messageEditText.setText(messageText)
 
         return rootView
     }
@@ -160,7 +156,6 @@ class ItemDetailFragment : Fragment() {
             activity.setUserIconToolBar(bitmap)
         }
 
-
         // retrieves messageDraft of this chat, if any, and sets it in messageEditText
         val messageDraft = activity.getMessageDraft(otherUsername)
         if (messageDraft != null) messageEditText.setText(messageDraft)
@@ -171,8 +166,8 @@ class ItemDetailFragment : Fragment() {
 
         repository.setAsRead(thisUsername,otherUsername)
 
-        val chatId = repository.getByUsers(thisUsername,otherUsername).id
-        AppNotificationManager.get().updateNotification(chatId!!)
+        //val chatId = repository.getByUsers(thisUsername,otherUsername).id
+        //AppNotificationManager.get().updateNotification(chatId!!)
 
         val messageWatcher = object : TextWatcher {
             override fun beforeTextChanged(s: CharSequence?, start: Int, count: Int, after: Int) {}
@@ -267,9 +262,8 @@ class ItemDetailFragment : Fragment() {
 
     override fun onSaveInstanceState(outState: Bundle) {
         super.onSaveInstanceState(outState)
-        // saves editText message content in persistentState bundle
 
-        //outState.putString(KEY_MESSAGE, messageEditText.text.toString()) //TODO: crash lateinit property messageEditText has not been initialized
+        // saves editText message content in persistentState bundle
         val activity = activity as ItemDetailHostActivity
         val message = messageEditText.text
         if (message!=null) {
@@ -318,8 +312,13 @@ class ItemDetailFragment : Fragment() {
         const val FILE_MESSAGE = 8
     }
 
-    // inner classes MessageHolder and ChatAdapter for ChatRecyclerView
 
+
+/*------------------------------------------------------------------ inner classes MessageHolder and ChatAdapter for ChatRecyclerView --------------------------------------------------------*/
+
+    // Depending on message type (text, image, audio, video, file) a different Holder is instantiated
+
+    // holder for text messages
     private inner class MessageHolderText(binding: ItemChatContentBinding) : RecyclerView.ViewHolder(binding.root) {
 
         private lateinit var message: Message // stores a reference to the Message object
@@ -331,9 +330,8 @@ class ItemDetailFragment : Fragment() {
             this.message = message
 
             if(this.message.fromUser == thisUsername) {
-                messageSender.text = "You" //TODO: change hardcoded string
+                messageSender.text = getString(R.string.sender_you)
                 this.itemView.background = context?.let { ContextCompat.getDrawable(it, R.drawable.outgoing_message_container) }
-                //messageText.textAlignment = View.TEXT_ALIGNMENT_VIEW_END //TODO: justify right
             } else{
                 messageSender.text = otherUsername
                 this.itemView.background = context?.let { ContextCompat.getDrawable(it, R.drawable.incoming_message_container) }
@@ -355,6 +353,7 @@ class ItemDetailFragment : Fragment() {
 
     }
 
+    // holder for image type message
     private inner class MessageHolderImage(binding: ImageItemChatContentBinding) : RecyclerView.ViewHolder(binding.root) {
 
         private lateinit var message: Message // stores a reference to the Message object
@@ -366,11 +365,10 @@ class ItemDetailFragment : Fragment() {
             this.message = message
 
             if (this.message.fromUser == thisUsername) {
-                messageSender.text = "You" //TODO: change hardcoded string
+                messageSender.text = getString(R.string.sender_you)
                 this.itemView.background = context?.let {
                     ContextCompat.getDrawable(it, R.drawable.outgoing_message_container)
                 }
-                //messageText.textAlignment = View.TEXT_ALIGNMENT_VIEW_END //TODO: justify right
             } else {
                 messageSender.text = otherUsername
                 this.itemView.background = context?.let {
@@ -407,7 +405,7 @@ class ItemDetailFragment : Fragment() {
 
     }
 
-
+    // holder for audio type message
     private inner class MessageHolderAudio(binding: AudioItemChatContentBinding) : RecyclerView.ViewHolder(binding.root) {
 
         private lateinit var message: Message // stores a reference to the Message object
@@ -420,9 +418,8 @@ class ItemDetailFragment : Fragment() {
             this.message = message
 
             if(this.message.fromUser == thisUsername) {
-                messageSender.text = "You" //TODO: change hardcoded string
+                messageSender.text = getString(R.string.sender_you)
                 this.itemView.background = context?.let { ContextCompat.getDrawable(it, R.drawable.outgoing_message_container) }
-                //messageText.textAlignment = View.TEXT_ALIGNMENT_VIEW_END //TODO: justify right
             } else{
                 messageSender.text = otherUsername
                 this.itemView.background = context?.let { ContextCompat.getDrawable(it, R.drawable.incoming_message_container) }
@@ -434,6 +431,7 @@ class ItemDetailFragment : Fragment() {
         }
 
         init{
+
             playButton.setOnClickListener {
                 Log.d("ItemDetail", "Play Button pressed")
                 Log.d("ItemDetail", message.text)
@@ -446,6 +444,7 @@ class ItemDetailFragment : Fragment() {
                 val intent = Intent(activity!!.applicationContext, PlayerService::class.java)
                 activity!!.applicationContext.stopService(intent)
             }
+
             this.itemView.setOnLongClickListener {
                 msgLongPress(message.id?.toLong()!!)
                 true
@@ -455,6 +454,7 @@ class ItemDetailFragment : Fragment() {
 
     }
 
+    // holder for file type message
     private inner class MessageHolderFile(binding: FileItemChatContentBinding) : RecyclerView.ViewHolder(binding.root) {
 
         private lateinit var message: Message // stores a reference to the Message object
@@ -467,9 +467,8 @@ class ItemDetailFragment : Fragment() {
             this.message = message
 
             if(this.message.fromUser == thisUsername) {
-                messageSender.text = "You" //TODO: change hardcoded string
+                messageSender.text = getString(R.string.sender_you)
                 this.itemView.background = context?.let { ContextCompat.getDrawable(it, R.drawable.outgoing_message_container) }
-                //messageText.textAlignment = View.TEXT_ALIGNMENT_VIEW_END //TODO: justify right
             } else{
                 messageSender.text = otherUsername
                 this.itemView.background = context?.let { ContextCompat.getDrawable(it, R.drawable.incoming_message_container) }
@@ -579,6 +578,8 @@ class ItemDetailFragment : Fragment() {
         chatRecyclerView.adapter = adapter
     }
 
+
+    // long press click to delete message
     private fun msgLongPress(id: Long) {
         val alert = AlertDialog.Builder(context)
         alert.setTitle("Delete message")

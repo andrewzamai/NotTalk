@@ -17,4 +17,5 @@
     <string name="sender_you">You</string>
     <string name="PlayerTitle">Audio</string>
     <string name="PlayerArtist">from </string>
+    <string name="ServiceRequestLogin">Please Log in</string>
 </resources>
