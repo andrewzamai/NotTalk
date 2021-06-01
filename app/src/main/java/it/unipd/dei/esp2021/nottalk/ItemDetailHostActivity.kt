@@ -3,25 +3,17 @@ package it.unipd.dei.esp2021.nottalk
 import android.annotation.SuppressLint
 import android.app.Activity
 import android.app.AlertDialog
-import android.content.ClipData
 import android.content.DialogInterface
 import android.content.Intent
 import android.content.SharedPreferences
 import android.graphics.Bitmap
-import android.graphics.Color
 import android.os.Bundle
-import android.text.SpannableStringBuilder
 import android.util.Log
 import android.view.Menu
-import android.view.MenuInflater
-import android.view.MenuItem
-import android.view.View
 import android.widget.ImageView
 import android.widget.Toast
 import androidx.appcompat.app.AppCompatActivity
 import androidx.appcompat.view.menu.MenuBuilder
-import androidx.appcompat.view.menu.MenuView
-import androidx.lifecycle.LifecycleOwner
 import androidx.lifecycle.MutableLiveData
 import androidx.navigation.NavController
 import androidx.navigation.fragment.NavHostFragment
@@ -32,7 +24,7 @@ import it.unipd.dei.esp2021.nottalk.remote.ServerAdapter
 import it.unipd.dei.esp2021.nottalk.remote.SyncService
 import it.unipd.dei.esp2021.nottalk.util.PlayerService
 import java.util.concurrent.Executors
-import java.util.zip.Inflater
+import kotlin.system.exitProcess
 
 
 /**
@@ -44,6 +36,7 @@ class ItemDetailHostActivity : AppCompatActivity(){
     companion object{
         val REQUEST_LOGIN = 10
         val REQUEST_MUST_LOGIN = 11
+        val SERVICE_STOP = 20
 
         val currentUsername = MutableLiveData<String>()
     }
@@ -86,7 +79,7 @@ class ItemDetailHostActivity : AppCompatActivity(){
         }
         else {
             currentUsername.value= sharedPref.getString("thisUsername","")
-            applicationContext.startService(Intent(this, SyncService::class.java))
+            applicationContext.startForegroundService(Intent(this, SyncService::class.java))
         }
             /*
             putString("thisUsername", "admin")
@@ -228,7 +221,7 @@ class ItemDetailHostActivity : AppCompatActivity(){
             }.commit()
             val userItem = toolbar.menu.findItem(R.id.user_item)
             userItem.title= currentUsername.value
-            applicationContext.startService(Intent(this, SyncService::class.java))
+            applicationContext.startForegroundService(Intent(this, SyncService::class.java))
         }
         if(resultCode == Activity.RESULT_CANCELED && requestCode == REQUEST_MUST_LOGIN){
             finish()
@@ -243,6 +236,14 @@ class ItemDetailHostActivity : AppCompatActivity(){
         }
     }
 
+    override fun onNewIntent(intent: Intent) {
+        super.onNewIntent(intent)
+        if(intent.action == SyncService.STOP_SERVICE) {
+            applicationContext.stopService(Intent(this, SyncService::class.java))
+            finishAndRemoveTask()
+            exitProcess(0)
+        }
+    }
 
 
 
@@ -297,6 +298,12 @@ class ItemDetailHostActivity : AppCompatActivity(){
                     )
                     navController.navigate(R.id.show_item_detail, bundle) //TODO: multiple fragments added on stack
                 }
+            }
+            //If close button is pressed on foreground notification
+            SyncService.STOP_SERVICE -> {
+                applicationContext.stopService(Intent(this, SyncService::class.java))
+                finishAndRemoveTask()
+                exitProcess(0)
             }
             /*
             // Invoked when a text is shared through Direct Share.

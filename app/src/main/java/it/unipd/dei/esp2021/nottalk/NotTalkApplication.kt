@@ -36,10 +36,20 @@ class NotTalkApplication : Application() {
             notificationManager.createNotificationChannel(channel)
         }
 
+        // create a foreground channel
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
+            val name = "ForegroundNotificationChannel"
+            val importance = NotificationManager.IMPORTANCE_LOW
+            val channel = NotificationChannel(FOREGROUND_CHANNEL, name, importance)
+            val notificationManager: NotificationManager = getSystemService(NotificationManager::class.java)
+            notificationManager.createNotificationChannel(channel)
+        }
+
     }
 
     companion object {
         const val AUDIO_NOTIFICATION_CHANNEL = "audioNotTalk"
+        const val FOREGROUND_CHANNEL = "foregroundNotTalk"
     }
 
 }

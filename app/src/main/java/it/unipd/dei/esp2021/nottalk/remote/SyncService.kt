@@ -1,15 +1,19 @@
 package it.unipd.dei.esp2021.nottalk.remote
 
+import android.app.Notification
+import android.app.PendingIntent
 import android.app.Service
 import android.content.Intent
+import android.graphics.drawable.Icon
 import android.os.Build
 import android.os.IBinder
 import androidx.annotation.RequiresApi
+import androidx.core.app.NotificationCompat
 import androidx.core.content.ContextCompat
-import it.unipd.dei.esp2021.nottalk.ChatViewModel
-import it.unipd.dei.esp2021.nottalk.NotTalkRepository
+import it.unipd.dei.esp2021.nottalk.*
 import it.unipd.dei.esp2021.nottalk.util.FileManager
 import it.unipd.dei.esp2021.nottalk.util.AppNotificationManager
+import it.unipd.dei.esp2021.nottalk.util.NotificationActionsReceiver
 import java.util.concurrent.Executor
 import java.util.concurrent.Executors
 import java.util.concurrent.TimeUnit
@@ -21,6 +25,26 @@ class SyncService : Service() {
 
     @RequiresApi(Build.VERSION_CODES.R)
     override fun onStartCommand(intent: Intent, flags: Int, startId: Int): Int {
+        val pendingIntent: PendingIntent =
+            Intent(applicationContext, ItemDetailHostActivity::class.java).let { notificationIntent ->
+                PendingIntent.getActivity(applicationContext, 0, notificationIntent, 0) }
+        val deleteIntent: PendingIntent =
+            Intent(applicationContext, NotificationActionsReceiver::class.java).let { notificationIntent ->
+                //notificationIntent.putExtra("requestCode",ItemDetailHostActivity.SERVICE_STOP)
+                notificationIntent.action = STOP_SERVICE
+                PendingIntent.getBroadcast(applicationContext, ItemDetailHostActivity.SERVICE_STOP, notificationIntent, 0) }
+        val notification: Notification = Notification.Builder(applicationContext, NotTalkApplication.FOREGROUND_CHANNEL)
+            //.setContentTitle("Service is running")
+            .setContentText("Service is running")
+            .setSmallIcon(R.drawable.ic_nt_notification_logo)
+            .setContentIntent(pendingIntent)
+            .setTicker("NotTalk service is running")
+            .setColor(getColor(R.color.NT_purple2))
+            .setColorized(true)
+            .addAction(R.drawable.ic_close,"Close application", deleteIntent)
+            //.addAction(NotificationCompat.Action.Builder(R.drawable.ic_close,"Close application", deleteIntent).build())
+            .build()
+        startForeground(999999, notification)
         /*
         backgroundExecutor.execute {
             // Your code logic goes here.
@@ -99,9 +123,10 @@ class SyncService : Service() {
         super.onDestroy()
     }
 
-
     companion object {
         const val DEFAULT_SYNC_INTERVAL = 5.toLong()
+
+        const val STOP_SERVICE = "stopService"
     }
 
     val mainThreadExecutor : Executor
