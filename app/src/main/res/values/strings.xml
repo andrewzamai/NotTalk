@@ -18,4 +18,5 @@
     <string name="PlayerTitle">Audio</string>
     <string name="PlayerArtist">from </string>
     <string name="ServiceRequestLogin">Please Log in</string>
+    <string name="fgn_text">Not Talk • Application is running</string>
 </resources>

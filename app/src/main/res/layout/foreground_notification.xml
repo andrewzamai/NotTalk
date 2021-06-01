@@ -1,0 +1,62 @@
+<?xml version="1.0" encoding="utf-8"?>
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    xmlns:tools="http://schemas.android.com/tools"
+    android:id="@+id/notificationLayout"
+    android:layout_width="match_parent"
+    android:layout_height="55dp"
+    android:background="@color/NT_purple2"
+    android:orientation="horizontal"
+    android:weightSum="10">
+
+    <LinearLayout
+        android:layout_weight="8"
+        android:layout_width="0dp"
+        android:layout_height="match_parent"
+        android:weightSum="8">
+
+        <ImageView
+            android:id="@+id/imageView"
+            android:layout_width="0dp"
+            android:layout_height="24dp"
+            android:layout_marginStart="16dp"
+            android:layout_marginTop="16dp"
+            android:layout_weight="1"
+            app:tint="@color/white"
+            android:src="@drawable/ic_nt_notification_logo" />
+
+        <TextView
+            android:id="@+id/fgn_name"
+            android:layout_width="0dp"
+            android:layout_height="36dp"
+            android:layout_gravity="center_vertical"
+            android:layout_marginStart="15dp"
+            android:layout_weight="7"
+            android:autoSizeMinTextSize="5dp"
+            android:autoSizeMaxTextSize="20dp"
+            android:autoSizeStepGranularity="2sp"
+            android:autoSizeTextType="uniform"
+            android:gravity="center_vertical"
+            android:maxLines="1"
+            android:text="@string/fgn_text"
+            android:textAlignment="textStart"
+            android:textColor="@color/white" />
+    </LinearLayout>
+
+
+    <TextView
+        android:layout_width="0dp"
+        android:layout_height="match_parent"
+        android:layout_weight="1"/>
+
+    <ImageButton
+        android:id="@+id/fgn_ButtonClose"
+        android:layout_width="0dp"
+        android:layout_height="24dp"
+        android:layout_marginTop="16dp"
+        android:layout_marginEnd="16dp"
+        android:layout_weight="1"
+        android:backgroundTint="@color/NT_purple2"
+        android:src="@drawable/ic_close" />
+
+</LinearLayout>
