@@ -156,11 +156,11 @@ class NotTalkRepository private constructor(private val context: Context){
         return userRelationDao.get(username)
     }
 
-    fun getByUsers(thisUser: String, otherUser: String): UserRelation{
+    fun getByUsers(thisUser: String, otherUser: String): UserRelation? {
         return userRelationDao.getByUsers(thisUser, otherUser)
     }
 
-    fun getById(id: Int): UserRelation{
+    fun getById(id: Int): UserRelation? {
         return userRelationDao.getById(id)
     }
 
@@ -192,9 +192,11 @@ class NotTalkRepository private constructor(private val context: Context){
 
     fun getConvo(thisUser: String, otherUser: String): LiveData<List<Message>> = messageDao.findConvo(thisUser, otherUser)
 
+    fun getConvoNotLiveData(thisUser: String, otherUser: String): List<Message> = messageDao.findConvoNonLiveData(thisUser, otherUser)
+
     fun setAsRead(toUser: String,fromUser: String){
         executor.execute {
-            messageDao.setAsRead(toUser,fromUser)
+            messageDao.setAsRead(toUser, fromUser)
         }
     }
 

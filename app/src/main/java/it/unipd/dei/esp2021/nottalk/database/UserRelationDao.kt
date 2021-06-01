@@ -9,10 +9,10 @@ interface UserRelationDao {
     fun get(thisUser: String): LiveData<List<User>>
 
     @Query("SELECT * FROM userRelation WHERE id = :id")
-    fun getById(id: Int): UserRelation
+    fun getById(id: Int): UserRelation?
 
     @Query("SELECT * FROM userRelation WHERE thisUser = :thisUser AND otherUser = :otherUser")
-    fun getByUsers(thisUser: String,otherUser: String): UserRelation
+    fun getByUsers(thisUser: String,otherUser: String): UserRelation?
 
     @Query("WITH ur(user1,user2) AS (SELECT thisUser, otherUser FROM userRelation WHERE id = :id LIMIT 1) SELECT * FROM message WHERE (toUser = (SELECT user1 FROM ur)  and fromUser = (SELECT user2 FROM ur)) or (toUser = (SELECT user2 FROM ur) and fromUser = (SELECT user1 FROM ur)) ORDER BY date DESC")
     fun getConvoById(id: Int): LiveData<Message>

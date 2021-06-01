@@ -9,6 +9,7 @@ import android.content.pm.ShortcutManager
 import android.graphics.drawable.Icon
 import android.net.Uri
 import android.os.Build
+import android.util.Log
 import androidx.annotation.RequiresApi
 import androidx.core.app.NotificationCompat
 import androidx.core.content.getSystemService
@@ -18,6 +19,8 @@ import it.unipd.dei.esp2021.nottalk.*
 import it.unipd.dei.esp2021.nottalk.database.Message
 import it.unipd.dei.esp2021.nottalk.database.User
 import java.lang.IllegalStateException
+import java.util.Objects.compare
+import java.util.Objects.equals
 
 class AppNotificationManager(private val context: Context){
 
@@ -32,7 +35,6 @@ class AppNotificationManager(private val context: Context){
         private const val REQUEST_BUBBLE = 2
 
         private val senderMes = mutableListOf<String>()
-
         fun initialize(context: Context){
             if(INSTANCE ==null) {
                 INSTANCE = AppNotificationManager(context)
@@ -52,6 +54,10 @@ class AppNotificationManager(private val context: Context){
         return senderMes
     }
 
+    fun addSenderMes(sender: String) {
+        senderMes.add(sender)
+    }
+
     @RequiresApi(Build.VERSION_CODES.R)
     fun showNotification(pendingMessages: Message, fromUser: Boolean, update: Boolean = false){
 
@@ -65,7 +71,7 @@ class AppNotificationManager(private val context: Context){
         val person = Person.Builder().setName(pendingMessages.fromUser).setIcon(icon).build()
 
 
-        val chatId = NotTalkRepository.get().getByUsers(pendingMessages.toUser, pendingMessages.fromUser).id
+        val chatId = NotTalkRepository.get().getByUsers(pendingMessages.toUser, pendingMessages.fromUser)?.id
 
         val pendingIntent = PendingIntent.getBroadcast(
             context,
@@ -140,28 +146,124 @@ class AppNotificationManager(private val context: Context){
             .setStyle(
                 Notification.MessagingStyle(user)
                     .apply {
+
                         val m = Notification.MessagingStyle.Message(
                             pendingMessages.text,
                             pendingMessages.date,
                             person
-                        ).apply {
-                            if (pendingMessages.type == "file") {
-                                setData(pendingMessages.mimeType, Uri.parse(pendingMessages.text))
+                        )
+                            .apply {
+                                if (pendingMessages.type == "file") {
+                                    setData(
+                                        pendingMessages.mimeType,
+                                        Uri.parse(pendingMessages.text)
+                                    )
+                                }
                             }
-                        }
 
-                            if (update) {
-                                addHistoricMessage(m)
+                        val messagesList = NotTalkRepository.get().getConvoNotLiveData(pendingMessages.fromUser, pendingMessages.toUser)
+                        val lastReadMessage = messagesList?.first() { equals(it.read, true)}
+                        val lastReadMessageIndex = messagesList.indexOf(lastReadMessage)
+                        Log.d("AppNotificationManager", messagesList.toString())
+                        Log.d("AppNotificationManager", lastReadMessage.toString())
+                        Log.d("AppNotificationManager", lastReadMessageIndex.toString())
+
+                        var i = lastReadMessageIndex-1
+                        while (i>0) {
+                            val senderPerson = if (messagesList[i].fromUser == pendingMessages.fromUser) {
+                                person
                             } else {
-                                addMessage(m)
-
+                                user
+                            }
+                            addHistoricMessage(Notification.MessagingStyle.Message(
+                                messagesList[i].text,
+                                messagesList[i].date,
+                                senderPerson)
+                            )
+                            i--
                         }
+
+                        addMessage(m)
 
                     }
+
+
+
+                        /*
+                        if (!update) {
+                            Log.d("AppNotificationManager", "Update=false called")
+                            //addHistoricMessage(m)
+                            addMessage(m)
+                        } else {
+                            Log.d("AppNotificationManager", "Update=true called")
+                            Log.d("AppNotificationManager", "historicMessagesSize ${historicMessages.size}" )
+                            for (i in historicMessages) {
+                                addMessage(i)
+                            }
+                            addMessage(m)
+                            addHistoricMessage(m)
+                        }
+
+                         */
+
+
+                        /*
+                        if (!update) {
+                            Log.d("AppNotificationManager", "Update=false called")
+                            addMessage(m)
+                        } else {
+                            Log.d("AppNotificationManager", "Update=true called")
+
+                            val messagesList = NotTalkRepository.get().getConvoNotLiveData(pendingMessages.fromUser, pendingMessages.toUser)
+                            val lastReadMessage = messagesList?.first() { equals(it.read, true)}
+                            val lastReadMessageIndex = messagesList.indexOf(lastReadMessage)
+                            Log.d("AppNotificationManager", messagesList.toString())
+                            Log.d("AppNotificationManager", lastReadMessage.toString())
+                            Log.d("AppNotificationManager", lastReadMessageIndex.toString())
+
+                            for (i in 0..lastReadMessageIndex) {
+                                val senderPerson = if (messagesList[i].fromUser == pendingMessages.fromUser) {
+                                    person
+                                } else {
+                                    user
+                                }
+                                addHistoricMessage(Notification.MessagingStyle.Message(
+                                    messagesList[i].text,
+                                    messagesList[i].date,
+                                    senderPerson))
+                            }
+
+                            /*
+                            for (i in 0..5) {
+                                val senderPerson = if (messagesList[i].fromUser == pendingMessages.fromUser) {
+                                    person
+                                } else {
+                                    user
+                                }
+                                addHistoricMessage(Notification.MessagingStyle.Message(
+                                    messagesList[i].text,
+                                    messagesList[i].date,
+                                    senderPerson))
+                            }
+                            */
+
+
+                            addMessage(m)
+
+                            */
+
+
+
+
                     .setGroupConversation(false)
             )
             .setWhen(pendingMessages.date)
-        notificationManager!!.notify(chatId!!, notification.build())
+        //if (update) {
+          //  builder.setOnlyAlertOnce(true)
+        //}
+        notificationManager.notify(chatId!!, notification.build())
+
+
 
     }
 
@@ -174,7 +276,7 @@ class AppNotificationManager(private val context: Context){
     }
 
     fun updateNotification(chatId: Int) {
-        senderMes.remove(NotTalkRepository.get().getById(chatId).otherUser)
+        senderMes.remove(NotTalkRepository.get().getById(chatId)?.otherUser)
         dismissNotification(chatId)
     }
 
