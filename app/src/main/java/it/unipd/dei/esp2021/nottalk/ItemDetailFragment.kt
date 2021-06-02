@@ -236,6 +236,7 @@ class ItemDetailFragment : Fragment() {
                     alert.setTitle("User Deleted")
                     alert.setMessage("User $otherUsername does not exist anymore")
                     alert.setPositiveButton("Ok") { _, _ -> }
+                    alert.show()
                 }
                 repository.deleteUser(otherUsername)
                 repository.deleteByUserTo(otherUsername)
