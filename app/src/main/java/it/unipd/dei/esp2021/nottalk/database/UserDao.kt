@@ -34,4 +34,6 @@ interface UserDao {
 
     @Delete
     fun delete(bill: User)
+
+
 }

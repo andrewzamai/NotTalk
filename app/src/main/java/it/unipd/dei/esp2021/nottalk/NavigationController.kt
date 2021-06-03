@@ -7,6 +7,7 @@ import androidx.fragment.app.Fragment
 
 interface NavigationController {
 
+/*
     fun openChat(id: Int, prepopulateText: String?)
 
     fun openPhoto(photo: Uri)
@@ -16,6 +17,8 @@ interface NavigationController {
         hidden: Boolean = false,
         body: (name: TextView, icon: ImageView) -> Unit = { _, _ -> }
     )
+*/
+
 }
 
-fun Fragment.getNavigationController() = requireActivity() as NavigationController
+//fun Fragment.getNavigationController() = requireActivity() as NavigationController
