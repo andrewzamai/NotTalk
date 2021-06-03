@@ -69,20 +69,12 @@ class AppNotificationManager(private val context: Context){
     @RequiresApi(Build.VERSION_CODES.R)
     fun updateShortcuts(pendingMessages: Message){
         //val chatId = NotTalkRepository.get().getByUsers(pendingMessages.toUser, pendingMessages.fromUser)?.id
-        val icon = IconCompat.createWithAdaptiveBitmap(
-            context.resources.assets.open(NotTalkRepository.get().findIconByUsername(pendingMessages.fromUser).toString()).use { input ->
-                BitmapFactory.decodeStream(input)
-            }
-        )
-        val iconForPers = Icon.createWithAdaptiveBitmap(
-            context.resources.assets.open(NotTalkRepository.get().findIconByUsername(pendingMessages.fromUser).toString()).use { input ->
-                BitmapFactory.decodeStream(input)
-            }
-        )
+        val icon = NotTalkRepository.get().findIconByUsername(pendingMessages.fromUser).toIcon()
+
         val contentUri = "https://nottalk.esp2021.dei.unipd.it/username/${pendingMessages.fromUser}".toUri()
         val person = Person.Builder()
             .setName(pendingMessages.fromUser)
-            .setIcon(iconForPers)
+            .setIcon(icon)
             .build()
 
         ShortcutManagerCompat.addDynamicShortcuts(
@@ -95,7 +87,7 @@ class AppNotificationManager(private val context: Context){
                     .setIntent( Intent(context, ItemDetailHostActivity::class.java)
                         .setAction(Intent.ACTION_VIEW)
                         .setData(contentUri) )
-                    .setIcon(icon)
+                    .setIcon(IconCompat.createWithResource(context, R.drawable.ic_nt_notification_logo))
                     .setCategories(setOf("com.example.android.bubbles.category.TEXT_SHARE_TARGET"))
                     .build()
             )
