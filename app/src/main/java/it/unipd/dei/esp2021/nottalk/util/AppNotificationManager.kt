@@ -43,6 +43,7 @@ class AppNotificationManager(private val context: Context){
         private const val REQUEST_BUBBLE = 2
 
         private val senderMes = mutableListOf<String>()
+
         fun initialize(context: Context){
             if(INSTANCE ==null) {
                 INSTANCE = AppNotificationManager(context)
@@ -151,7 +152,7 @@ class AppNotificationManager(private val context: Context){
     @RequiresApi(Build.VERSION_CODES.R)
     fun showNotification(pendingMessages: Message, fromUser: Boolean, update: Boolean = false){
 
-        senderMes.add(pendingMessages.fromUser)
+        //senderMes.add(pendingMessages.fromUser)
 
         updateShortcuts(pendingMessages)
 
@@ -172,7 +173,7 @@ class AppNotificationManager(private val context: Context){
 
 
         val bubbleIntent = Intent(context, BubbleActivity::class.java).setData(contentUri)
-        val bubblePendingIntent = PendingIntent.getActivity(context, 0, bubbleIntent, 0)
+        val bubblePendingIntent = PendingIntent.getActivity(context, REQUEST_BUBBLE, bubbleIntent, PendingIntent.FLAG_UPDATE_CURRENT)
 
         val bubbleData = Notification.BubbleMetadata.Builder(bubblePendingIntent, icon)
             .setIntent(bubblePendingIntent)

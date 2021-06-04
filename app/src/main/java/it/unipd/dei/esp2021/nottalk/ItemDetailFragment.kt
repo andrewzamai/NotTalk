@@ -174,11 +174,6 @@ class ItemDetailFragment : Fragment() {
 
         repository.setAsRead(thisUsername,otherUsername)
 
-        val chatId = repository.getByUsers(thisUsername,otherUsername)?.id
-        if (chatId != null) {
-            AppNotificationManager.get().updateNotification(chatId)
-        }
-
         val messageWatcher = object : TextWatcher {
             override fun beforeTextChanged(s: CharSequence?, start: Int, count: Int, after: Int) {}
             override fun onTextChanged(s: CharSequence?, start: Int, before: Int, count: Int) {}
