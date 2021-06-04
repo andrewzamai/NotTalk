@@ -2,17 +2,24 @@ package it.unipd.dei.esp2021.nottalk.util
 
 import android.annotation.SuppressLint
 import android.app.*
+import android.content.ComponentName
 import android.content.Context
 import android.content.Intent
 import android.content.LocusId
+import android.content.pm.ShortcutInfo
 import android.content.pm.ShortcutManager
+import android.graphics.BitmapFactory
 import android.graphics.drawable.Icon
 import android.net.Uri
 import android.os.Build
 import android.util.Log
 import androidx.annotation.RequiresApi
 import androidx.core.app.NotificationCompat
+import androidx.core.content.LocusIdCompat
 import androidx.core.content.getSystemService
+import androidx.core.content.pm.ShortcutInfoCompat
+import androidx.core.content.pm.ShortcutManagerCompat
+import androidx.core.graphics.drawable.IconCompat
 import androidx.core.graphics.drawable.toIcon
 import androidx.core.net.toUri
 import it.unipd.dei.esp2021.nottalk.*
@@ -58,17 +65,76 @@ class AppNotificationManager(private val context: Context){
         senderMes.add(sender)
     }
 
+    @SuppressLint("RestrictedApi")
+    @RequiresApi(Build.VERSION_CODES.R)
+    fun updateShortcuts(pendingMessages: Message){
+        //val chatId = NotTalkRepository.get().getByUsers(pendingMessages.toUser, pendingMessages.fromUser)?.id
+        val icon = NotTalkRepository.get().findIconByUsername(pendingMessages.fromUser).toIcon()
+
+        val contentUri = "https://nottalk.esp2021.dei.unipd.it/username/${pendingMessages.fromUser}".toUri()
+        val person = Person.Builder()
+            .setName(pendingMessages.fromUser)
+            .setIcon(icon)
+            .build()
+
+        ShortcutManagerCompat.addDynamicShortcuts(
+            context, mutableListOf(
+                ShortcutInfoCompat.Builder(context, NotTalkRepository.get().findByUsername(pendingMessages.fromUser).username)
+                    .setLongLived(true)
+                    .setLocusId(LocusIdCompat(NotTalkRepository.get().findByUsername(pendingMessages.fromUser).username))
+                    .setShortLabel(pendingMessages.fromUser)
+                    .setPerson(androidx.core.app.Person.fromAndroidPerson(person))
+                    .setIntent( Intent(context, ItemDetailHostActivity::class.java)
+                        .setAction(Intent.ACTION_VIEW)
+                        .setData(contentUri) )
+                    .setIcon(IconCompat.createWithResource(context, R.drawable.ic_nt_notification_logo))
+                    .setCategories(setOf("com.example.android.bubbles.category.TEXT_SHARE_TARGET"))
+                    .build()
+            )
+        )
+
+
+
+        /*
+        ShortcutInfo
+            .Builder(context, NotTalkRepository.get().findByUsername(pendingMessages.fromUser).username)
+            .setLocusId(LocusId(NotTalkRepository.get().findByUsername(pendingMessages.fromUser).username))
+            .setActivity(ComponentName(context, ItemDetailHostActivity::class.java))
+            .setLongLived(true)
+            .setIntent( Intent(context, ItemDetailHostActivity::class.java)
+                .setAction(Intent.ACTION_VIEW)
+                .setData(contentUri) )
+            .setPerson(person)
+            .setShortLabel(pendingMessages.fromUser)
+            .setLongLabel(pendingMessages.text)
+            .setIcon(iconForPers)
+            .setCategories(setOf("com.example.android.bubbles.category.TEXT_SHARE_TARGET"))
+            .build()
+
+
+
+         */
+
+    }
+
     @RequiresApi(Build.VERSION_CODES.R)
     fun showNotification(pendingMessages: Message, fromUser: Boolean, update: Boolean = false){
 
         senderMes.add(pendingMessages.fromUser)
+
+        updateShortcuts(pendingMessages)
 
         val contentUri = "https://nottalk.esp2021.dei.unipd.it/username/${pendingMessages.fromUser}".toUri() // uri con username primo messaggio
 
         val user = Person.Builder().setName(context.getString(R.string.sender_you)).build()
 
         val icon = NotTalkRepository.get().findIconByUsername(pendingMessages.fromUser).toIcon()
-        val person = Person.Builder().setName(pendingMessages.fromUser).setIcon(icon).build()
+        val person = Person
+            .Builder()
+            .setName(pendingMessages.fromUser)
+            .setImportant(true)
+            .setIcon(icon)
+            .build()
 
 
         val chatId = NotTalkRepository.get().getByUsers(pendingMessages.toUser, pendingMessages.fromUser)?.id
@@ -83,28 +149,26 @@ class AppNotificationManager(private val context: Context){
             PendingIntent.FLAG_UPDATE_CURRENT
         )
 
+        val target = Intent(context, BubbleActivity::class.java)
+        val bubbleIntent = PendingIntent.getActivity(context, 0, target, 0)
+
+        val bubbleData = Notification
+            .BubbleMetadata.Builder(pendingIntent, icon)
+            .setDesiredHeight(context.resources.getDimensionPixelSize(R.dimen.bubble_height))
+            .setIntent(bubbleIntent)
+            .setAutoExpandBubble(true)
+            .setSuppressNotification(true)
+            .build()
+
 
         val notification = Notification
             .Builder(context, CHANNEL_NEW_MESSAGES)
-            .setBubbleMetadata(
-                Notification.BubbleMetadata.Builder(pendingIntent, icon)
-                    .setDesiredHeight(context.resources.getDimensionPixelSize(R.dimen.bubble_height))
-                    .apply{
-                        if(fromUser){
-                            setAutoExpandBubble(true)
-                        }
-                        if(fromUser || update){
-                            setSuppressNotification(true)
-                        }
-                    }
-                    .build()
-            )
-
+            .setBubbleMetadata(bubbleData)
             .setContentTitle(pendingMessages.fromUser)
             .setSmallIcon(android.R.drawable.stat_notify_chat)
             .setCategory(Notification.CATEGORY_MESSAGE)
-            .setShortcutId(pendingMessages.fromUser)
-            .setLocusId(LocusId(pendingMessages.fromUser))
+            .setShortcutId(NotTalkRepository.get().findByUsername(pendingMessages.fromUser).username)
+            //.setLocusId(LocusId(NotTalkRepository.get().findByUsername(pendingMessages.fromUser).username))
             .addPerson(person)
             .setShowWhen(true)
             .setContentIntent(
@@ -262,8 +326,6 @@ class AppNotificationManager(private val context: Context){
           //  builder.setOnlyAlertOnce(true)
         //}
         notificationManager.notify(chatId!!, notification.build())
-
-
 
     }
 
