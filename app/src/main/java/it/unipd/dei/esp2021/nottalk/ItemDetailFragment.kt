@@ -313,9 +313,12 @@ class ItemDetailFragment : Fragment() {
         const val AUDIO_MESSAGE = 6
         const val FILE_MESSAGE = 8
 
+        /*
         private const val ARG_ID = "id"
         private const val ARG_FOREGROUND = "foreground"
         private const val ARG_PREPOPULATE_TEXT = "prepopulate_text"
+
+
 
         fun newInstanceText(id: Int, foreground: Boolean, prepopulateText: String? = null) =
             ItemDetailFragment().apply {
@@ -333,6 +336,8 @@ class ItemDetailFragment : Fragment() {
                 putParcelable(ARG_PHOTO, photo)
             }
         }
+
+         */
     }
 
 

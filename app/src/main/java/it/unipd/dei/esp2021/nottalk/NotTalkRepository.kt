@@ -160,6 +160,12 @@ class NotTalkRepository private constructor(private val context: Context){
         return userRelationDao.getByUsers(thisUser, otherUser)
     }
 
+
+    fun getAllOtherUserByUsers(thisUser: String): List<String> {
+        return userRelationDao.getAllOtherUserByUsers(thisUser).value!!
+    }
+
+
     fun getById(id: Int): UserRelation? {
         return userRelationDao.getById(id)
     }

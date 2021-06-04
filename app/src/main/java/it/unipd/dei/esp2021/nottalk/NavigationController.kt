@@ -6,7 +6,6 @@ import android.widget.TextView
 import androidx.fragment.app.Fragment
 
 interface NavigationController {
-
 /*
     fun openChat(id: Int, prepopulateText: String?)
 
@@ -18,7 +17,6 @@ interface NavigationController {
         body: (name: TextView, icon: ImageView) -> Unit = { _, _ -> }
     )
 */
-
 }
 
 //fun Fragment.getNavigationController() = requireActivity() as NavigationController
