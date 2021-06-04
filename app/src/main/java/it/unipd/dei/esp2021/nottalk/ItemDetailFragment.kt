@@ -43,6 +43,8 @@ import java.util.concurrent.Executors
  */
 class ItemDetailFragment : Fragment() {
 
+    private var isInHostActivity: Boolean = true // if fragment is contained in ItemDetailHostActivity (to not set toolbar attributes)
+
     // since usernames are unique it's possible to re-create a User from its username
     private lateinit var otherUsername: String // receiver (user's chat pressed in listFragment)
     private lateinit var thisUsername: String // sender (this application user)
@@ -94,6 +96,8 @@ class ItemDetailFragment : Fragment() {
             if (it.containsKey(ARG_ITEM_ID)) {
                 // Load the username content specified by the fragment arguments.
                 otherUsername = it.getString(ARG_ITEM_ID).toString()
+                isInHostActivity = it.getBoolean(ARG_ITEM_IS_IN_HOST_ACTIVITY)
+                Log.d("ItemDetailFragment, from ItemDetailHostActivity?", isInHostActivity.toString())
             }
         }
 
@@ -139,26 +143,30 @@ class ItemDetailFragment : Fragment() {
     // after a configuration change as rotation this is the right to retrieve this fragment parent activity and it's toolbar reference
     override fun onActivityCreated(savedInstanceState: Bundle?) {
         super.onActivityCreated(savedInstanceState)
-        val activity = activity as ItemDetailHostActivity
-        activity.setToolBarTitle(otherUsername)
 
-        val user: User? = otherUsername.let { NotTalkRepository.get().findByUsername(it) }
-        Log.d("ItemDetailFragment", user.toString())
-        // retrieves its profile Bitmap picture to set it as notification media picture
-        val bArray = user?.picture
-        val bitmap = if (bArray != null) {
-            BitmapFactory.decodeByteArray(bArray, 0, bArray.size)
-        } else {
-            context?.getDrawable(R.drawable.ic_avatar)?.toBitmap()
+        if (isInHostActivity) {
+            val activity = activity as ItemDetailHostActivity
+            activity.setToolBarTitle(otherUsername)
+
+            val user: User? = otherUsername.let { NotTalkRepository.get().findByUsername(it) }
+            Log.d("ItemDetailFragment", user.toString())
+            // retrieves its profile Bitmap picture to set it as notification media picture
+            val bArray = user?.picture
+            val bitmap = if (bArray != null) {
+                BitmapFactory.decodeByteArray(bArray, 0, bArray.size)
+            } else {
+                context?.getDrawable(R.drawable.ic_avatar)?.toBitmap()
+            }
+
+            if (bitmap != null) {
+                activity.setUserIconToolBar(bitmap)
+            }
+
+            // retrieves messageDraft of this chat, if any, and sets it in messageEditText
+            val messageDraft = activity.getMessageDraft(otherUsername)
+            if (messageDraft != null) messageEditText.setText(messageDraft)
+
         }
-
-        if (bitmap != null) {
-            activity.setUserIconToolBar(bitmap)
-        }
-
-        // retrieves messageDraft of this chat, if any, and sets it in messageEditText
-        val messageDraft = activity.getMessageDraft(otherUsername)
-        if (messageDraft != null) messageEditText.setText(messageDraft)
     }
 
     override fun onStart() {
@@ -175,11 +183,13 @@ class ItemDetailFragment : Fragment() {
             override fun beforeTextChanged(s: CharSequence?, start: Int, count: Int, after: Int) {}
             override fun onTextChanged(s: CharSequence?, start: Int, before: Int, count: Int) {}
             override fun afterTextChanged(s: Editable?) {
-                // saves messageDraft in map passed to ItemDetailsHostActivity savedInstanceState bundle
-                val activity = activity as ItemDetailHostActivity
-                val message = messageEditText.text
-                if (message!=null) {
-                    activity.saveMessageDraft(otherUsername, messageEditText.text.toString())
+                if (isInHostActivity) {
+                    // saves messageDraft in map passed to ItemDetailsHostActivity savedInstanceState bundle
+                    val activity = activity as ItemDetailHostActivity
+                    val message = messageEditText.text
+                    if (message != null) {
+                        activity.saveMessageDraft(otherUsername, messageEditText.text.toString())
+                    }
                 }
             }
         }
@@ -250,27 +260,34 @@ class ItemDetailFragment : Fragment() {
     override fun onDetach() {
         super.onDetach()
 
-        val activity = activity as ItemDetailHostActivity
-        activity.setToolBarTitle(getString(R.string.toolbar_chatLists))
-        activity.setUserIconToolBar(null)
+        if (isInHostActivity) {
+            val activity = activity as ItemDetailHostActivity
+            activity.setToolBarTitle(getString(R.string.toolbar_chatLists))
+            activity.setUserIconToolBar(null)
+        }
+
     }
 
 
     override fun onDestroyView() {
         super.onDestroyView()
         _binding = null
+        Log.d("ItemDetailFragment", "onDestroyView called")
     }
 
 
     override fun onSaveInstanceState(outState: Bundle) {
         super.onSaveInstanceState(outState)
 
-        // saves editText message content in persistentState bundle
-        val activity = activity as ItemDetailHostActivity
-        val message = messageEditText.text
-        if (message!=null) {
-            activity.saveMessageDraft(otherUsername, messageEditText.text.toString())
+        if (isInHostActivity) {
+            // saves editText message content in persistentState bundle
+            val activity = activity as ItemDetailHostActivity
+            val message = messageEditText.text
+            if (message!=null) {
+                activity.saveMessageDraft(otherUsername, messageEditText.text.toString())
+            }
         }
+
     }
 
     override fun onActivityResult(requestCode: Int, resultCode: Int, data: Intent?) {
@@ -306,6 +323,7 @@ class ItemDetailFragment : Fragment() {
     companion object {
         // The fragment argument representing the item ID that this fragment represents.
         const val ARG_ITEM_ID = "item_id" // to pass otherUsername as argument from itemList fragment to this fragment
+        const val ARG_ITEM_IS_IN_HOST_ACTIVITY = "item_is_in_host_activity"
 
         // constants used to inflate correct layout in chatRecycler view depending on content type and mimeType
         const val TEXT_MESSAGE = 2

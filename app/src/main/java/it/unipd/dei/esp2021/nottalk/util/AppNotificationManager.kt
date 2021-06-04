@@ -147,6 +147,7 @@ class AppNotificationManager(private val context: Context){
 
     }
 
+    @SuppressLint("WrongConstant")
     @RequiresApi(Build.VERSION_CODES.R)
     fun showNotification(pendingMessages: Message, fromUser: Boolean, update: Boolean = false){
 
@@ -169,27 +170,17 @@ class AppNotificationManager(private val context: Context){
 
         val chatId = NotTalkRepository.get().getByUsers(pendingMessages.toUser, pendingMessages.fromUser)?.id
 
-        val pendingIntent = PendingIntent.getBroadcast(
-            context,
-            REQUEST_CONTENT,
-            Intent(context, BubbleActivity::class.java)
-                .setAction(Intent.ACTION_VIEW)
-                .putExtra("thisUser",pendingMessages.toUser)
-                .putExtra("otherUser", pendingMessages.fromUser),
-            PendingIntent.FLAG_UPDATE_CURRENT
-        )
 
-        val target = Intent(context, BubbleActivity::class.java)
-        val bubbleIntent = PendingIntent.getActivity(context, 0, target, 0)
+        val bubbleIntent = Intent(context, BubbleActivity::class.java).setData(contentUri)
+        val bubblePendingIntent = PendingIntent.getActivity(context, 0, bubbleIntent, 0)
 
-        val bubbleData = Notification
-            .BubbleMetadata.Builder(pendingIntent, icon)
+        val bubbleData = Notification.BubbleMetadata.Builder(bubblePendingIntent, icon)
+            .setIntent(bubblePendingIntent)
             .setDesiredHeight(context.resources.getDimensionPixelSize(R.dimen.bubble_height))
-            .setIntent(bubbleIntent)
             .setAutoExpandBubble(true)
-            .setSuppressNotification(true)
+            //.setSuppressNotification(true)
+            .setIcon(icon)
             .build()
-
 
         val notification = Notification
             .Builder(context, CHANNEL_NEW_MESSAGES)
