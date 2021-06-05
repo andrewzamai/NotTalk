@@ -106,7 +106,7 @@ class SyncService : Service() {
                                 nm.showNotification(i, true, true)
                             }
                             nm.addSenderMes(i.fromUser)
-                        }else{
+                        } else {
                             if (!senderMes.contains(i.fromUser)) {
                                 nm.showNotification(i, false, false)
                             } else {

@@ -25,6 +25,7 @@ import androidx.core.net.toUri
 import it.unipd.dei.esp2021.nottalk.*
 import it.unipd.dei.esp2021.nottalk.database.Message
 import it.unipd.dei.esp2021.nottalk.database.User
+import it.unipd.dei.esp2021.nottalk.database.UserRelationDao
 import java.lang.IllegalStateException
 import java.util.Objects.compare
 import java.util.Objects.equals
@@ -42,6 +43,7 @@ class AppNotificationManager(private val context: Context){
         private const val REQUEST_BUBBLE = 2
 
         private val senderMes = mutableListOf<String>()
+
         fun initialize(context: Context){
             if(INSTANCE ==null) {
                 INSTANCE = AppNotificationManager(context)
@@ -57,6 +59,9 @@ class AppNotificationManager(private val context: Context){
     private val notificationManager: NotificationManager =
         context.getSystemService() ?: throw IllegalStateException()
 
+    private val shortcutManager: ShortcutManager =
+        context.getSystemService() ?: throw IllegalStateException()
+
     fun getSenderMes(): List<String>{
         return senderMes
     }
@@ -65,17 +70,13 @@ class AppNotificationManager(private val context: Context){
         senderMes.add(sender)
     }
 
+
     @SuppressLint("RestrictedApi")
     @RequiresApi(Build.VERSION_CODES.R)
     fun updateShortcuts(pendingMessages: Message){
         //val chatId = NotTalkRepository.get().getByUsers(pendingMessages.toUser, pendingMessages.fromUser)?.id
-        val icon = NotTalkRepository.get().findIconByUsername(pendingMessages.fromUser).toIcon()
 
         val contentUri = "https://nottalk.esp2021.dei.unipd.it/username/${pendingMessages.fromUser}".toUri()
-        val person = Person.Builder()
-            .setName(pendingMessages.fromUser)
-            .setIcon(icon)
-            .build()
 
         ShortcutManagerCompat.addDynamicShortcuts(
             context, mutableListOf(
@@ -83,44 +84,75 @@ class AppNotificationManager(private val context: Context){
                     .setLongLived(true)
                     .setLocusId(LocusIdCompat(NotTalkRepository.get().findByUsername(pendingMessages.fromUser).username))
                     .setShortLabel(pendingMessages.fromUser)
-                    .setPerson(androidx.core.app.Person.fromAndroidPerson(person))
+                    .setPerson(androidx.core.app.Person.fromAndroidPerson(Person
+                        .Builder()
+                        .setName(pendingMessages.fromUser)
+                        .setIcon(NotTalkRepository.get().findIconByUsername(pendingMessages.fromUser).toIcon())
+                        .build()))
                     .setIntent( Intent(context, ItemDetailHostActivity::class.java)
                         .setAction(Intent.ACTION_VIEW)
                         .setData(contentUri) )
-                    .setIcon(IconCompat.createWithResource(context, R.drawable.ic_nt_notification_logo))
+                    .setIcon(IconCompat.createWithBitmap((NotTalkRepository.get().findIconByUsername(pendingMessages.fromUser))))
                     .setCategories(setOf("com.example.android.bubbles.category.TEXT_SHARE_TARGET"))
                     .build()
             )
         )
 
 
-
         /*
-        ShortcutInfo
-            .Builder(context, NotTalkRepository.get().findByUsername(pendingMessages.fromUser).username)
-            .setLocusId(LocusId(NotTalkRepository.get().findByUsername(pendingMessages.fromUser).username))
-            .setActivity(ComponentName(context, ItemDetailHostActivity::class.java))
-            .setLongLived(true)
-            .setIntent( Intent(context, ItemDetailHostActivity::class.java)
-                .setAction(Intent.ACTION_VIEW)
-                .setData(contentUri) )
-            .setPerson(person)
-            .setShortLabel(pendingMessages.fromUser)
-            .setLongLabel(pendingMessages.text)
-            .setIcon(iconForPers)
-            .setCategories(setOf("com.example.android.bubbles.category.TEXT_SHARE_TARGET"))
-            .build()
-
-
+        var shortcuts = NotTalkRepository.get().getAllOtherUserByUsers(pendingMessages.toUser).map {user ->
+            val icon = Icon.createWithAdaptiveBitmap(
+                context.resources.assets.open(NotTalkRepository.get().findIconByUsername(pendingMessages.fromUser).toIcon().toString()).use { input ->
+                    BitmapFactory.decodeStream(input)
+                }
+            )
+            ShortcutInfo
+                .Builder(
+                    context,
+                    NotTalkRepository.get().findByUsername(pendingMessages.fromUser).username
+                )
+                .setLocusId(
+                    LocusId(
+                        NotTalkRepository.get().findByUsername(pendingMessages.fromUser).username
+                    )
+                )
+                .setActivity(ComponentName(context, ItemDetailHostActivity::class.java))
+                .setLongLived(true)
+                .setIntent(
+                    Intent(context, ItemDetailHostActivity::class.java)
+                        .setAction(Intent.ACTION_VIEW)
+                        .setData(contentUri)
+                )
+                .setPerson(Person
+                    .Builder()
+                    .setName(pendingMessages.fromUser)
+                    .setIcon(icon)
+                    .build())
+                .setShortLabel(pendingMessages.fromUser)
+                .setLongLabel(pendingMessages.text)
+                .setIcon(icon)
+                .setCategories(setOf("com.example.android.bubbles.category.TEXT_SHARE_TARGET"))
+                .build()
+        }
+        if (NotTalkRepository.get().findByUsername(pendingMessages.fromUser) != null) {
+            shortcuts = shortcuts.sortedByDescending { it.id == pendingMessages.fromUser }
+        }
+        // Truncate the list if we can't show all of our contacts.
+        val maxCount = shortcutManager.maxShortcutCountPerActivity
+        if (shortcuts.size > maxCount) {
+            shortcuts = shortcuts.take(maxCount)
+        }
+        shortcutManager.addDynamicShortcuts(shortcuts)
 
          */
 
     }
 
+    @SuppressLint("WrongConstant")
     @RequiresApi(Build.VERSION_CODES.R)
     fun showNotification(pendingMessages: Message, fromUser: Boolean, update: Boolean = false){
 
-        senderMes.add(pendingMessages.fromUser)
+        //senderMes.add(pendingMessages.fromUser)
 
         updateShortcuts(pendingMessages)
 
@@ -139,27 +171,17 @@ class AppNotificationManager(private val context: Context){
 
         val chatId = NotTalkRepository.get().getByUsers(pendingMessages.toUser, pendingMessages.fromUser)?.id
 
-        val pendingIntent = PendingIntent.getBroadcast(
-            context,
-            REQUEST_CONTENT,
-            Intent(context, BubbleActivity::class.java)
-                .setAction(Intent.ACTION_VIEW)
-                .putExtra("chatId",chatId)
-                .putExtra("otherUser", pendingMessages.fromUser),
-            PendingIntent.FLAG_UPDATE_CURRENT
-        )
 
-        val target = Intent(context, BubbleActivity::class.java)
-        val bubbleIntent = PendingIntent.getActivity(context, 0, target, 0)
+        val bubbleIntent = Intent(context, BubbleActivity::class.java).setData(contentUri)
+        val bubblePendingIntent = PendingIntent.getActivity(context, REQUEST_BUBBLE, bubbleIntent, PendingIntent.FLAG_UPDATE_CURRENT)
 
-        val bubbleData = Notification
-            .BubbleMetadata.Builder(pendingIntent, icon)
+        val bubbleData = Notification.BubbleMetadata.Builder(bubblePendingIntent, icon)
+            .setIntent(bubblePendingIntent)
             .setDesiredHeight(context.resources.getDimensionPixelSize(R.dimen.bubble_height))
-            .setIntent(bubbleIntent)
             .setAutoExpandBubble(true)
-            .setSuppressNotification(true)
+            //.setSuppressNotification(true)
+            .setIcon(icon)
             .build()
-
 
         val notification = Notification
             .Builder(context, CHANNEL_NEW_MESSAGES)

@@ -251,6 +251,10 @@ class ItemListFragment : Fragment() {
                 ItemDetailFragment.ARG_ITEM_ID,
                 user.username
             )
+            bundle.putBoolean(
+                ItemDetailFragment.ARG_ITEM_IS_IN_HOST_ACTIVITY,
+                true
+            )
             
             if (itemDetailFragmentContainer != null) {
                 // tablet layout
