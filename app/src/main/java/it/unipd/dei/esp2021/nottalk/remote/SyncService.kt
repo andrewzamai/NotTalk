@@ -20,13 +20,18 @@ import java.util.concurrent.Executor
 import java.util.concurrent.Executors
 import java.util.concurrent.TimeUnit
 
-
+/**
+ * Scheduled Foreground service that checks server for new messages at regular intervals
+ */
 class SyncService : Service() {
     // Create an executor that executes tasks in a background thread.
     private val backgroundExecutor = Executors.newSingleThreadScheduledExecutor()
 
     @RequiresApi(Build.VERSION_CODES.R)
     override fun onStartCommand(intent: Intent, flags: Int, startId: Int): Int {
+        /**
+         * Creates the notification to start the service in foreground
+         */
         val pendingIntent: PendingIntent =
             Intent(applicationContext, ItemDetailHostActivity::class.java).let { notificationIntent ->
                 PendingIntent.getActivity(applicationContext, 0, notificationIntent, 0) }
@@ -35,19 +40,15 @@ class SyncService : Service() {
                 //notificationIntent.putExtra("requestCode",ItemDetailHostActivity.SERVICE_STOP)
                 notificationIntent.action = STOP_SERVICE
                 PendingIntent.getBroadcast(applicationContext, ItemDetailHostActivity.SERVICE_STOP, notificationIntent, 0) }
+        //Build notification from layout
         val notificationLayout = RemoteViews(packageName,R.layout.foreground_notification)
         notificationLayout.setOnClickPendingIntent(R.id.fgn_ButtonClose,deleteIntent)
         val notification: Notification = NotificationCompat.Builder(applicationContext, NotTalkApplication.FOREGROUND_CHANNEL)
-            .setContentTitle("Service is running")
+            .setContentTitle("NotTalk")
             .setContentText("Service is running")
             .setSmallIcon(R.drawable.ic_nt_notification_logo)
             .setContentIntent(pendingIntent)
             .setTicker("NotTalk service is running")
-            //.setColor(getColor(R.color.NT_purple2))
-            //.setColorized(true)
-            //.addAction(R.drawable.ic_close,"Close application", deleteIntent)
-            //.addAction(NotificationCompat.Action.Builder(R.drawable.ic_close,"Close application", deleteIntent).build())
-            //.setStyle(androidx.media.app.NotificationCompat.MediaStyle().MediaStyle().setShowActionsInCompactView(0))
             .setContent(notificationLayout)
             .build()
         startForeground(999999, notification)
@@ -62,15 +63,21 @@ class SyncService : Service() {
             }
         }
         */
+        /**
+         * Schedule the executor to perform the routine to check for new messages
+         */
         backgroundExecutor.scheduleAtFixedRate({
             try {
+                //Get authentication data from sharedPrefereces
                 val sp1 = getSharedPreferences("notTalkPref", MODE_PRIVATE)
                 val username = sp1.getString("thisUsername", "")
                 val uuid = sp1.getString("uuid", "")
 
                 val sa = ServerAdapter()
                 val response = sa.checkMsg(username!!, uuid!!)
+
                 if (response.first.isNotEmpty()) {
+                    //For every message checks if it's a file and save it to local storage
                     for (msg in response.first) {
                         if (msg.type == "file") {
                             val path = FileManager.saveFileToStorage(
@@ -85,9 +92,12 @@ class SyncService : Service() {
                     }
                     //val cd = ChatDatabase.getDatabase(applicationContext)
                     val cd = NotTalkRepository.get()
+                    //inserts messages to local database
                     cd.insertMessages(response.first)
+                    //deletes received messages from server
                     sa.deleteMsg(username!!, uuid!!, response.second)
                     Thread(Runnable {
+                        //Updates user and userRelation tables
                         for (msg in response.first) {
                             if (!cd.existsRelation(username, msg.fromUser)) {
                                 cd.insertUser(msg.fromUser)
@@ -96,6 +106,7 @@ class SyncService : Service() {
                         }
                     }).start()
 
+                    //Notification part
                     val nm = AppNotificationManager.get()
                     for (i in response.first) {
                         val senderMes = nm.getSenderMes()

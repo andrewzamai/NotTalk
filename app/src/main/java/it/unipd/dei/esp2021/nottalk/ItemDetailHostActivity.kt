@@ -100,9 +100,11 @@ class ItemDetailHostActivity : AppCompatActivity(){
 
         navController.addOnDestinationChangedListener { _, destination, _ ->
             if(destination.id == R.id.fragment_item_detail || destination.id == R.id.item_detail_fragment){
+                //clear the user menu if not in the correct fragment
                 toolbar.menu.clear()
             }
             else{
+                //inflate and update the user menu
                 onCreateOptionsMenu(toolbar.menu)
                 userIcon.setBackgroundColor(0x00000000)
                 val userItem = toolbar.menu.findItem(R.id.user_item)
@@ -111,6 +113,12 @@ class ItemDetailHostActivity : AppCompatActivity(){
             }
         }
         toolbar.title = getString(R.string.toolbar_chatLists)
+        /**
+         *  Sets a listener for menu items:
+         *  Login/Register: starts LoginActivity with back press available
+         *  Logout: starts LoginActivity without coming back
+         *  Delete: user removes all data in database relative to current user and perform logout
+         */
         toolbar.setOnMenuItemClickListener { item ->
             when (item.itemId) {
                 R.id.login_item -> {
@@ -186,6 +194,7 @@ class ItemDetailHostActivity : AppCompatActivity(){
 
     }
 
+    //Solution to add icon and group to toolbar menu
     @SuppressLint("RestrictedApi")
     override fun onCreateOptionsMenu(menu: Menu): Boolean {
         if (menu is MenuBuilder) {
@@ -226,10 +235,11 @@ class ItemDetailHostActivity : AppCompatActivity(){
         }
     }
 
-
+    //To handle an intent received with the activity already open
     override fun onNewIntent(intent: Intent) {
         super.onNewIntent(intent)
         if(intent.action == SyncService.STOP_SERVICE) {
+            //Stops the application and service if the foreground notification is closed
             applicationContext.stopService(Intent(this, SyncService::class.java))
             finishAndRemoveTask()
             exitProcess(0)
@@ -307,6 +317,7 @@ class ItemDetailHostActivity : AppCompatActivity(){
             }
             //If close button is pressed on foreground notification
             SyncService.STOP_SERVICE -> {
+                //Stops the application and service
                 applicationContext.stopService(Intent(this, SyncService::class.java))
                 finishAndRemoveTask()
                 exitProcess(0)

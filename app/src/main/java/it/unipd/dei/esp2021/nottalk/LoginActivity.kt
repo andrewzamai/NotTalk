@@ -13,6 +13,11 @@ import androidx.appcompat.app.AppCompatActivity
 import it.unipd.dei.esp2021.nottalk.remote.ServerAdapter
 import java.util.concurrent.Executors
 
+/**
+ * Secondary activity in charge of perform user-related operations
+ * Login and Create User
+ */
+
 class LoginActivity : AppCompatActivity() {
     private var code: Int? = null
     override fun onCreate(savedInstanceState: Bundle?) {
@@ -23,14 +28,16 @@ class LoginActivity : AppCompatActivity() {
         val loginButton = findViewById<Button>(R.id.login_button)
         val registerButton = findViewById<Button>(R.id.register_button)
         val backgroundExecutor = Executors.newSingleThreadScheduledExecutor()
-        code = intent.extras?.getInt("requestCode")
+        code = intent.extras?.getInt("requestCode") //get intent request code
 
-
+        //When Login button is pressed
         loginButton.setOnClickListener { view ->
+            //Close the keyboard
             val sys = getSystemService(INPUT_METHOD_SERVICE) as InputMethodManager
             sys.hideSoftInputFromWindow(view.applicationWindowToken, 0)
             val username = userText.text.toString()
             val password = passText.text.toString()
+            //Form validation and error feedback
             if(username.isEmpty() || password.isEmpty()) {
                 Toast.makeText(this, "Field must not be empty", Toast.LENGTH_LONG).show()
                 if (username.isEmpty()) userText.setBackgroundColor(0x33FF0000)
@@ -54,6 +61,7 @@ class LoginActivity : AppCompatActivity() {
             val repo = ServerAdapter()
             var result: String
             backgroundExecutor.execute {
+                //Perform http request to server
                 result = repo.login(username, password)
                 mainExecutor.execute {
                     if (result == "username does not exist") {
@@ -65,6 +73,7 @@ class LoginActivity : AppCompatActivity() {
                         passText.setBackgroundColor(0x33FF0000)
                         userText.setBackgroundColor(0x0)
                     } else {
+                        //If result is ok update intent and finish activity
                         Toast.makeText(this, "Welcome $username", Toast.LENGTH_LONG).show()
                         val data = Intent()
                         data.putExtra("username", username)
@@ -75,11 +84,15 @@ class LoginActivity : AppCompatActivity() {
                 }
             }
         }
+
+        //When Register button is pressed
         registerButton.setOnClickListener { view ->
+            //Close the keyboard
             val sys = getSystemService(INPUT_METHOD_SERVICE) as InputMethodManager
             sys.hideSoftInputFromWindow(view.applicationWindowToken, 0)
             val username = userText.text.toString()
             val password = passText.text.toString()
+            //Form validation and error feedback
             if(username.isEmpty() || password.isEmpty()){
                 Toast.makeText(this, "Field must not be empty", Toast.LENGTH_LONG).show()
                 if(username.isEmpty()) userText.setBackgroundColor(0x33FF0000)
@@ -103,6 +116,7 @@ class LoginActivity : AppCompatActivity() {
             val repo = ServerAdapter()
             var result: String
             backgroundExecutor.execute {
+                //Perform http request to server
                 result = repo.createUser(username, password)
                 mainExecutor.execute {
                     if (result == "username not available") {
@@ -110,6 +124,7 @@ class LoginActivity : AppCompatActivity() {
                         userText.setBackgroundColor(0x33FF0000)
                         passText.setBackgroundColor(0x0)
                     } else {
+                        //If result is ok update intent and finish activity
                         Toast.makeText(this, "Welcome $username", Toast.LENGTH_LONG).show()
                         val data = Intent()
                         data.putExtra("username", username)
@@ -122,6 +137,11 @@ class LoginActivity : AppCompatActivity() {
         }
     }
     override fun onBackPressed() {
+        /**
+         * In case of intent with request code "REQUEST_MUST_LOGIN"
+         * sets a special result that cause the application to close
+         * on back pressed
+         */
         if (code == ItemDetailHostActivity.REQUEST_MUST_LOGIN){
             setResult(Activity.RESULT_CANCELED)
             finish()

@@ -36,7 +36,7 @@ class NotTalkApplication : Application() {
             notificationManager.createNotificationChannel(channel)
         }
 
-        // create a foreground channel
+        // create a channel for foreground service
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
             val name = "ForegroundNotificationChannel"
             val importance = NotificationManager.IMPORTANCE_LOW

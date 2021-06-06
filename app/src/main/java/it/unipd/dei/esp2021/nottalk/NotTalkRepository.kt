@@ -43,11 +43,13 @@ class NotTalkRepository private constructor(private val context: Context){
         context.applicationContext,
         ChatDatabase::class.java,
         DATABASE_NAME
-    )   .addCallback(ChatDatabaseCallback())
+    )   //.addCallback(ChatDatabaseCallback())
         .fallbackToDestructiveMigration()
         .allowMainThreadQueries() //TODO: ATTENTION allowed queries on main thread
         .build()
 
+    //This piece of code was used to populate the database at the first launch
+    /*
     private class ChatDatabaseCallback(): RoomDatabase.Callback(){
         override fun onCreate(db: SupportSQLiteDatabase) {
             super.onCreate(db)
@@ -58,6 +60,7 @@ class NotTalkRepository private constructor(private val context: Context){
             }).start()
         }
     }
+    */
 
 
     // reference to a serverAdapter instance, one single instance accessed from a NotTalkRepository object
@@ -90,6 +93,9 @@ class NotTalkRepository private constructor(private val context: Context){
     }
 
     fun insertUser(username: String) {
+        /**
+         * Creates an image from initial of the username
+         */
         executor.execute {
             val b = Bitmap.createBitmap(200, 200, Bitmap.Config.ARGB_8888)
             val canvas = Canvas(b)
@@ -278,6 +284,7 @@ class NotTalkRepository private constructor(private val context: Context){
 
     fun sendFileMessage(context: Context, uri: Uri, thisUsername: String, uuid: String, otherUsername: String){
         Thread(Runnable {
+            //Get file from uri
             val contentResolver = context.contentResolver
             contentResolver.takePersistableUriPermission(uri, Intent.FLAG_GRANT_READ_URI_PERMISSION)
             val mimetype = contentResolver.getType(uri)
@@ -288,6 +295,7 @@ class NotTalkRepository private constructor(private val context: Context){
             contentResolver.run {
                 fileInStream = openInputStream(uri) ?: throw Exception("Error file")
             }
+            //Encode file in Base64
             val content = Base64.encodeToString(fileInStream.readBytes(), Base64.DEFAULT)
             val msg = Message(otherUsername, thisUsername, date, "file", uri.toString())
             msg.fileName = filename!!
@@ -299,6 +307,7 @@ class NotTalkRepository private constructor(private val context: Context){
 
             var result: String = ""
             try {
+                //Send the file to the server
                 result = server.sendFileMsg(
                     thisUsername,
                     uuid,
@@ -317,7 +326,7 @@ class NotTalkRepository private constructor(private val context: Context){
                 }
             }
             if (result != "ok") {
-                deleteMessage(id)
+                deleteMessage(id) // deletes it from local database if couldn't send it
                 context.mainExecutor.execute {
                     Toast.makeText(context,"Error occurred, please re-login", Toast.LENGTH_LONG).show()
                 }

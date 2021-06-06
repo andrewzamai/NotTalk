@@ -8,9 +8,14 @@ import java.net.URL
 import java.net.HttpURLConnection
 import java.util.stream.Collectors
 
-
+/**
+ * This class provides the functions to dialogue with the server
+ * the requests are all POST http request containing a single JSON file
+ * with all the data and authentication.
+ */
 class ServerAdapter {
-    private val url = "https://embedded-chat-server.herokuapp.com/"
+    private val url = "https://embedded-chat-server.herokuapp.com/" //Server url
+    //Each function has a specific url
     private val checkMsgUrl = URL(url + "check_msg")
     private val sendMsgUrl = URL(url + "send_msg")
     private val loginUrl = URL(url + "login")
@@ -46,9 +51,17 @@ class ServerAdapter {
         val requestBody = bf.lines().collect(Collectors.joining())
         bf.close()
         conn.disconnect()
+        //returns the JSON response file
         return JSONObject(requestBody)
     }
 
+    //Some function requires the session token "uuid" as well as the username of the current user
+
+    /**
+     * Create the user passing username and password
+     * @return "ok" if successful or "username not available" if not
+     * @throws Exception with a message describing the error that has occurred
+     */
     fun createUser(username: String, password: String): String{
         val json = JSONObject()
         json.put("username", username)
@@ -62,6 +75,11 @@ class ServerAdapter {
         throw Exception(error)
     }
 
+    /**
+     * Check if the user exists in remote database
+     * @return true if exists or false if not
+     * @throws Exception with a message describing the error that has occurred
+     */
     fun checkUser(username: String): Boolean{
         val json = JSONObject()
         json.put("username", username)
@@ -75,6 +93,11 @@ class ServerAdapter {
 
     }
 
+    /**
+     * Perform login passing username and password
+     * @return "ok" if successful or "username does not exists"/"password incorrect" if not
+     * @throws Exception with a message describing the error that has occurred
+     */
     fun login(username: String, password: String): String {
         val json = JSONObject()
         json.put("username", username)
@@ -89,6 +112,11 @@ class ServerAdapter {
         throw Exception(error)
     }
 
+    /**
+     * Send text message to specified user ("toUser")
+     * @return "ok" if successful or "invalid client username"/"not logged in"/"Recipient user id invalid" if not
+     * @throws Exception with a message describing the error that has occurred
+     */
     fun sendTextMsg(username: String, uuid: String, toUser: String, date: Long, text: String): String{
         val json = JSONObject()
         json.put("username", username)
@@ -110,6 +138,11 @@ class ServerAdapter {
         throw Exception(error)
     }
 
+    /**
+     * Send file message to specified user ("toUser")
+     * @return "ok" if successful or "invalid client username"/"not logged in"/"Recipient user id invalid" if not
+     * @throws Exception with a message describing the error that has occurred
+     */
     fun sendFileMsg(username: String, uuid: String, toUser: String, date: Long,
                     content: String, mimeType: String, fileName: String): String{
         val json = JSONObject()
@@ -134,6 +167,12 @@ class ServerAdapter {
         throw Exception(error)
     }
 
+    /**
+     * Checks the server for new messages
+     * @return A pair of values where .first is the list of messages and .second is the list
+     * of the messages ids
+     * @throws Exception with a message describing the error that has occurred
+     */
     fun checkMsg(username: String, uuid: String): Pair<List<Message>,List<Int>>{
         val json = JSONObject()
         json.put("username", username)
@@ -179,6 +218,11 @@ class ServerAdapter {
         throw Exception(jsonResponse.getString("error"))
     }
 
+    /**
+     * Deletes the current user and his messages from the server
+     * @return "ok" if successful or "username does not exist"/"not logged in" if not
+     * @throws Exception with a message describing the error that has occurred
+     */
     fun deleteUser(username: String, uuid: String): String{
         val json = JSONObject()
         json.put("username", username)
@@ -193,6 +237,11 @@ class ServerAdapter {
         throw Exception(error)
     }
 
+    /**
+     * Deletes the messages in the server database where id is in "ids" List
+     * @return "ok" if successful or "invalid client username"/"not logged in" if not
+     * @throws Exception with a message describing the error that has occurred
+     */
     fun deleteMsg(username: String, uuid: String, ids: List<Int>): String {
         val json = JSONObject()
         json.put("username", username)

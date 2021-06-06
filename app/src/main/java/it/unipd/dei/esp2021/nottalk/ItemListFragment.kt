@@ -114,21 +114,25 @@ class ItemListFragment : Fragment() {
 
     override fun onStart() {
         super.onStart()
+        /**
+         * set button listener to add a conversation to the local database
+         */
         floatingAddUserButton.setOnClickListener{
             //Toast.makeText(context, "FAB pressed", Toast.LENGTH_LONG).show()
             val backgroundExecutor = Executors.newSingleThreadScheduledExecutor()
+            //create an alert to insert username
             val alert = AlertDialog.Builder(context)
             alert.setTitle("Add Conversation")
             alert.setMessage("Insert username")
             val input = EditText(context)
             alert.setView(input)
             alert.setPositiveButton("Ok", DialogInterface.OnClickListener { dialog, whichButton ->
-                // Do something with value!
                 backgroundExecutor.execute{
                     val repo = NotTalkRepository.get()
                     val sa = ServerAdapter()
                     val username = input.text.toString()
                     val result = sa.checkUser(username)
+                    //Checks if user exists in server
                     val doesExist = repo.checkUser(username)
                     context?.mainExecutor?.execute{
                         if(!result){
@@ -138,8 +142,8 @@ class ItemListFragment : Fragment() {
                             if(doesExist){
                                 Toast.makeText(context, "User updated", Toast.LENGTH_LONG).show()
                             }
-                            else repo.insertUser(username)
-                            repo.createRelation(username)
+                            else repo.insertUser(username) //user is added locally if doesn't exists
+                            repo.createRelation(username)  //conversation with user is added to database
                         }
                     }
                 }
@@ -192,16 +196,22 @@ class ItemListFragment : Fragment() {
                 picture.setImageBitmap(bitmap)
             }
             else picture.setImageResource(R.drawable.ic_avatar)
+            /**
+             * In the following thread two observer are added to update unread messages number
+             * and the last messages text and date to be visualized on the itemList Holder
+             */
             Thread(Runnable{
                 msgCount = repository.getUnreadCount(thisUsername!!,user.username)
                 lastMsg = repository.getLast(thisUsername!!,user.username)
                 activity?.mainExecutor?.execute {
+                    //unread message count observer
                     msgCount.observe(viewLifecycleOwner, { count ->
                         if (count > 0) {
                             countText.text = count.toString()
                             countText.visibility = View.VISIBLE
                         } else countText.visibility = View.INVISIBLE
                     })
+                    //last message data observer
                     lastMsg.observe(viewLifecycleOwner, { msg ->
                         if(msg==null){
                             msgDate.text=""
@@ -213,6 +223,7 @@ class ItemListFragment : Fragment() {
                         if(msg.fromUser==thisUsername!!) text+="You: "
                         if(type=="text") text+=msg.text
                         if(type=="file"){
+                            //Sets an emoji for every type of file
                             text += when(msg.mimeType!!.split("/")[0]){
                                 "image"-> "\uD83D\uDCF7 Image"
                                 "audio"-> "\uD83C\uDFA7 Audio"
@@ -227,6 +238,7 @@ class ItemListFragment : Fragment() {
                         cal.set(Calendar.MINUTE,0)
                         cal.set(Calendar.SECOND,0)
                         cal.set(Calendar.MILLISECOND,0)
+                        //checks if date is today: if true print only hours and minutes else the date
                         sDate = if(msg.date>=cal.timeInMillis){
                             val simpleDateFormat = SimpleDateFormat("HH:mm")
                             simpleDateFormat.format(date)

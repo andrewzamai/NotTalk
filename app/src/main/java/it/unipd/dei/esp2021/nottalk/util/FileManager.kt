@@ -10,7 +10,10 @@ import android.util.Base64
 import android.util.Base64.DEFAULT
 import java.io.OutputStream
 
-
+/**
+ * This class provides the methods to get the file from uri using a picker
+ * or to save the file to shared storage and get back the relative uri.
+ */
 class FileManager: Application() {
     companion object{
         const val PICK_FILE = 2
@@ -19,12 +22,16 @@ class FileManager: Application() {
         const val PICK_AUDIO = 5
 
         fun saveFileToStorage(context: Context, file: String, filename: String, mimeType: String): String{
+            /**
+             * Saves the file to the shared storage using contentResolver
+             */
             val contentResolver = context.contentResolver
-            val fileOutStream: OutputStream
-            val type = mimeType.split("/")[0]
+            val fileOutStream: OutputStream //Stream to write in storage
+            val type = mimeType.split("/")[0] //Get the first part of the mimetype
             var directory: String
             var mediaContentUri: Uri
             var values: ContentValues
+            //Get the correct uri according to the mimetype of the file
             if(type=="image") {
                 directory = Environment.DIRECTORY_PICTURES+"/NotTalk/"
                 mediaContentUri = MediaStore.Images.Media.EXTERNAL_CONTENT_URI
@@ -53,6 +60,7 @@ class FileManager: Application() {
                 }
             }
             else{
+                //All other mimetypes are treated as generic files
                 directory = Environment.DIRECTORY_DOWNLOADS+"/NotTalk/"
                 mediaContentUri = MediaStore.Downloads.EXTERNAL_CONTENT_URI
                 values = ContentValues().apply {
@@ -62,17 +70,22 @@ class FileManager: Application() {
                 }
             }
             var uri: Uri?
+            //Get the stream from the specified uri
             contentResolver.run {
                 uri = contentResolver.insert(mediaContentUri, values)
                 fileOutStream = openOutputStream(uri!!)?: throw Exception("Errore resolver")
             }
             //fileOutStream.use { bitmap.compress(Bitmap.CompressFormat.JPEG, 100, it) }
+            //Write in memory decoding it first
             fileOutStream.write(Base64.decode(file,DEFAULT))
             fileOutStream.close()
             return uri.toString()
         }
 
         fun pickFileFromStorage(activity: Activity, code: Int): Intent{
+            /**
+             * Return the intent to throw to choose a file from a picker and get the file uri
+             */
             return Intent(Intent.ACTION_OPEN_DOCUMENT).apply {
                 addCategory(Intent.CATEGORY_OPENABLE)
                 addFlags(Intent.FLAG_GRANT_PERSISTABLE_URI_PERMISSION)

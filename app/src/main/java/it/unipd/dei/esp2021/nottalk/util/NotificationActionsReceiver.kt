@@ -23,6 +23,7 @@ class NotificationActionsReceiver() : BroadcastReceiver() {
             PlayerService.PLAYER_START -> serviceIntent.action = PlayerService.PLAYER_START
             PlayerService.PLAYER_RESTART -> serviceIntent.action = PlayerService.PLAYER_RESTART
             SyncService.STOP_SERVICE -> {
+                //Launch the main activity stop the service and close all
                 context?.startActivity(Intent(context,ItemDetailHostActivity::class.java).let{
                     it.action = SyncService.STOP_SERVICE
                     it.setFlags(Intent.FLAG_ACTIVITY_NEW_TASK)

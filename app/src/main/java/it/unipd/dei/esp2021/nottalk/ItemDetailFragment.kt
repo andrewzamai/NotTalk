@@ -202,6 +202,7 @@ class ItemDetailFragment : Fragment() {
 
         }
 
+        //inflates the attachment menu to send file
         fileButton.setOnClickListener { view ->
             val popUp = PopupMenu(requireContext(),view)
             popUp.setOnMenuItemClickListener { item ->
@@ -224,6 +225,8 @@ class ItemDetailFragment : Fragment() {
             popUp.inflate(R.menu.file_popup_menu)
             popUp.show()
         }
+
+        //Checks if the user still exists in remote database
         val executor = Executors.newSingleThreadExecutor()
         executor.execute {
             val sa = ServerAdapter()
@@ -235,6 +238,7 @@ class ItemDetailFragment : Fragment() {
                 result=true
             }
             if(!result){
+                //If not deletes all local data relative to that user
                 context?.mainExecutor?.execute{
                     activity?.onBackPressed()
                     val alert = AlertDialog.Builder(context)
@@ -288,6 +292,7 @@ class ItemDetailFragment : Fragment() {
     override fun onActivityResult(requestCode: Int, resultCode: Int, data: Intent?) {
         super.onActivityResult(requestCode, resultCode, data)
         if(resultCode == Activity.RESULT_OK){
+            //Receive and manage the intent thrown by file picker and send the file
             if( requestCode == FileManager.PICK_IMAGE||
                 requestCode == FileManager.PICK_VIDEO||
                 requestCode == FileManager.PICK_AUDIO||
