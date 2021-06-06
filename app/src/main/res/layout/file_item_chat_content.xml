@@ -30,18 +30,16 @@
         app:layout_constraintBottom_toBottomOf="parent"
         app:layout_constraintEnd_toEndOf="parent" />
 
-    <androidx.constraintlayout.widget.ConstraintLayout
+    <LinearLayout
         android:id="@+id/file_view"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
-        android:layout_marginStart="32dp"
-        android:layout_marginEnd="32dp"
         android:background="@drawable/view_border"
         app:layout_constraintBottom_toTopOf="@+id/message_date"
         app:layout_constraintEnd_toEndOf="parent"
-        app:layout_constraintHorizontal_bias="0.372"
         app:layout_constraintStart_toStartOf="parent"
-        app:layout_constraintTop_toBottomOf="@+id/message_sender">
+        app:layout_constraintTop_toBottomOf="@+id/message_sender"
+        app:layout_constraintVertical_bias="0.0">
 
         <ImageView
             android:id="@+id/file_icon"
@@ -54,13 +52,14 @@
 
         <TextView
             android:id="@+id/file_name"
-            android:layout_width="272dp"
+            android:layout_width="wrap_content"
             android:layout_height="46dp"
             android:autoSizeMaxTextSize="50sp"
             android:autoSizeMinTextSize="12sp"
             android:autoSizeStepGranularity="2sp"
             android:autoSizeTextType="uniform"
             android:gravity="center"
+            android:minWidth="200dp"
             android:text="file.txt"
             android:textAlignment="gravity"
             android:textSize="20dp"
@@ -69,7 +68,11 @@
             app:layout_constraintStart_toEndOf="@+id/file_icon"
             app:layout_constraintTop_toTopOf="parent" />
 
+        <View
+            android:layout_width="20dp"
+            android:layout_height="match_parent"/>
 
-    </androidx.constraintlayout.widget.ConstraintLayout>
+
+    </LinearLayout>
 
 </androidx.constraintlayout.widget.ConstraintLayout>

@@ -31,12 +31,24 @@ class LoginActivity : AppCompatActivity() {
             sys.hideSoftInputFromWindow(view.applicationWindowToken, 0)
             val username = userText.text.toString()
             val password = passText.text.toString()
-            if(username.isEmpty() || password.isEmpty()){
+            if(username.isEmpty() || password.isEmpty()) {
                 Toast.makeText(this, "Field must not be empty", Toast.LENGTH_LONG).show()
-                if(username.isEmpty()) userText.setBackgroundColor(0x33FF0000)
+                if (username.isEmpty()) userText.setBackgroundColor(0x33FF0000)
                 else userText.setBackgroundColor(0x0)
-                if(password.isEmpty()) passText.setBackgroundColor(0x33FF0000)
+                if (password.isEmpty()) passText.setBackgroundColor(0x33FF0000)
                 else passText.setBackgroundColor(0x0)
+                return@setOnClickListener
+            }
+            else if(username.length>50){
+                Toast.makeText(this, "Max username length: 50", Toast.LENGTH_LONG).show()
+                userText.setBackgroundColor(0x33FF0000)
+                passText.setBackgroundColor(0x0)
+                return@setOnClickListener
+            }
+            else if(password.length>60){
+                Toast.makeText(this, "Max password length: 60", Toast.LENGTH_LONG).show()
+                passText.setBackgroundColor(0x33FF0000)
+                userText.setBackgroundColor(0x0)
                 return@setOnClickListener
             }
             val repo = ServerAdapter()
@@ -74,6 +86,18 @@ class LoginActivity : AppCompatActivity() {
                 else userText.setBackgroundColor(0x0)
                 if(password.isEmpty()) passText.setBackgroundColor(0x33FF0000)
                 else passText.setBackgroundColor(0x0)
+                return@setOnClickListener
+            }
+            else if(username.length>50){
+                Toast.makeText(this, "Max username length: 50", Toast.LENGTH_LONG).show()
+                userText.setBackgroundColor(0x33FF0000)
+                passText.setBackgroundColor(0x0)
+                return@setOnClickListener
+            }
+            else if(password.length>60){
+                Toast.makeText(this, "Max password length: 60", Toast.LENGTH_LONG).show()
+                passText.setBackgroundColor(0x33FF0000)
+                userText.setBackgroundColor(0x0)
                 return@setOnClickListener
             }
             val repo = ServerAdapter()

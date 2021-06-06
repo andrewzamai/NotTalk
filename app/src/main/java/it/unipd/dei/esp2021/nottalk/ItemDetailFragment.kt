@@ -502,7 +502,7 @@ class ItemDetailFragment : Fragment() {
         private val messageSender: TextView = binding.messageSender
         private val messageDate: TextView = binding.messageDate
         private val fileName: TextView = binding.fileName
-        private val fileView: ConstraintLayout = binding.fileView
+        private val fileView: LinearLayout = binding.fileView
 
         fun bind(message: Message){
             this.message = message
@@ -518,6 +518,7 @@ class ItemDetailFragment : Fragment() {
             val currentDate = Date(this.message.date)
             val simpleDateFormat = SimpleDateFormat("dd-MM-yyyy HH:mm")
             messageDate.text = simpleDateFormat.format(currentDate)
+            fileName.maxWidth = (this.itemView.width * 0.8).toInt()
             fileName.text = message.fileName
         }
 
