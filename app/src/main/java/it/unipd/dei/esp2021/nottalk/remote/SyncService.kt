@@ -52,17 +52,7 @@ class SyncService : Service() {
             .setContent(notificationLayout)
             .build()
         startForeground(999999, notification)
-        /*
-        backgroundExecutor.execute {
-            // Your code logic goes here.
-            Log.d("SyncService", "1")
-            // Update UI on the main thread
-            mainThreadExecutor.execute {
-                // You code logic goes here.
-                Log.d("SyncService", "2")
-            }
-        }
-        */
+
         /**
          * Schedule the executor to perform the routine to check for new messages
          */
@@ -109,22 +99,12 @@ class SyncService : Service() {
                     //Notification part
                     val nm = AppNotificationManager.get()
                     for (i in response.first) {
-                        val senderMes = nm.getSenderMes()
                         if(nm.canBubble(i.fromUser)) {
-                            if (!senderMes.contains(i.fromUser)) {
-                                nm.showNotification(i, true, false)
-                            } else {
-                                nm.showNotification(i, true, true)
-                            }
-                            nm.addSenderMes(i.fromUser)
+                            nm.showNotification(i, true)
                         } else {
-                            if (!senderMes.contains(i.fromUser)) {
-                                nm.showNotification(i, false, false)
-                            } else {
-                                nm.showNotification(i, false, true)
-                            }
-                            nm.addSenderMes(i.fromUser)
+                            nm.showNotification(i, false)
                         }
+                        nm.addSenderMes(i.fromUser)
                     }
                 }
             }
@@ -141,6 +121,7 @@ class SyncService : Service() {
     override fun onBind(intent: Intent): IBinder? {
         return null
     }
+
 
     override fun onDestroy() {
         backgroundExecutor.shutdown()

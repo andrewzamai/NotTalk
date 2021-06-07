@@ -26,9 +26,9 @@ class ReplyReceiver : BroadcastReceiver(){
             val thisUser = sharedPref.getString("thisUsername", "")
             val uuid = sharedPref.getString("uuid", "")
 
-            repository.sendTextMessage(thisUser!!, uuid!!, input.toString(), otherUser!!)
+            repository.sendTextMessage(thisUser!!, uuid!!, input.toString(), otherUser!!)   //sends the message
 
-            AppNotificationManager.get().updateNotification(chatId)
+            AppNotificationManager.get().updateNotification(chatId) //Aggiorna la notifica
 
         }
     }
