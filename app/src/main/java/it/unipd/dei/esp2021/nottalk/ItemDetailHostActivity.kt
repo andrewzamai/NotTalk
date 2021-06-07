@@ -1,19 +1,27 @@
 package it.unipd.dei.esp2021.nottalk
 
+import android.Manifest
 import android.annotation.SuppressLint
 import android.app.Activity
 import android.app.AlertDialog
 import android.content.DialogInterface
 import android.content.Intent
 import android.content.SharedPreferences
+import android.content.pm.PackageManager
 import android.graphics.Bitmap
+import android.net.Uri
 import android.os.Bundle
+import android.provider.Settings
 import android.util.Log
 import android.view.Menu
+import android.widget.EditText
 import android.widget.ImageView
 import android.widget.Toast
+import androidx.activity.result.contract.ActivityResultContracts
 import androidx.appcompat.app.AppCompatActivity
 import androidx.appcompat.view.menu.MenuBuilder
+import androidx.core.app.ActivityCompat
+import androidx.core.content.ContextCompat
 import androidx.lifecycle.MutableLiveData
 import androidx.navigation.NavController
 import androidx.navigation.fragment.NavHostFragment
@@ -38,6 +46,7 @@ class ItemDetailHostActivity : AppCompatActivity(){
         const val REQUEST_LOGIN = 10
         const val REQUEST_MUST_LOGIN = 11
         const val SERVICE_STOP = 20
+        const val REQUEST_PERMISSION = 21
 
         val currentUsername = MutableLiveData<String>()
     }
@@ -72,14 +81,17 @@ class ItemDetailHostActivity : AppCompatActivity(){
         sharedPref = getSharedPreferences("notTalkPref", MODE_PRIVATE)
         if (sharedPref.getString("thisUsername", "") == "") {
             applicationContext.stopService(Intent(this, SyncService::class.java))
-            Toast.makeText(applicationContext, R.string.ServiceRequestLogin, Toast.LENGTH_LONG).show()
-            val intent = Intent(this, LoginActivity::class.java)
-            intent.putExtra("requestCode", REQUEST_MUST_LOGIN)
-            startActivityForResult(intent, REQUEST_MUST_LOGIN)
         }
-        else {
-            currentUsername.value= sharedPref.getString("thisUsername","")
-            applicationContext.startForegroundService(Intent(this, SyncService::class.java))
+        when {
+            ContextCompat.checkSelfPermission(this,
+                Manifest.permission.WRITE_EXTERNAL_STORAGE) == PackageManager.PERMISSION_GRANTED -> {
+                checkAuth()
+            }
+            ActivityCompat.shouldShowRequestPermissionRationale(this,Manifest.permission.WRITE_EXTERNAL_STORAGE) -> {
+                requestSettings()
+            } else -> {
+                requestPermission(Manifest.permission.WRITE_EXTERNAL_STORAGE)
+            }
         }
 
 
@@ -110,6 +122,9 @@ class ItemDetailHostActivity : AppCompatActivity(){
                 val userItem = toolbar.menu.findItem(R.id.user_item)
                 userItem.title= currentUsername.value
                 userItem.icon.setTint(getColor(R.color.NT_purple2))
+                currentUsername.observe(this){
+                    userItem.title= it
+                }
             }
         }
         toolbar.title = getString(R.string.toolbar_chatLists)
@@ -225,6 +240,16 @@ class ItemDetailHostActivity : AppCompatActivity(){
         if(resultCode == Activity.RESULT_CANCELED && requestCode == REQUEST_MUST_LOGIN){
             finish()
         }
+        if(requestCode == REQUEST_PERMISSION){
+            if(ContextCompat.checkSelfPermission(
+                    this,
+                    Manifest.permission.WRITE_EXTERNAL_STORAGE
+                ) == PackageManager.PERMISSION_GRANTED) {
+                checkAuth()
+            } else{
+                requestSettings()
+            }
+        }
     }
 
     // saves userMessagesMap of draft messages
@@ -251,6 +276,44 @@ class ItemDetailHostActivity : AppCompatActivity(){
 
 /*----------------------------------------------- HELPER FUNCTIONS -----------------------------------------------------------*/
 
+    private fun checkAuth() {
+        if (sharedPref.getString("thisUsername", "") == "") {
+            applicationContext.stopService(Intent(this, SyncService::class.java))
+            Toast.makeText(applicationContext, R.string.ServiceRequestLogin, Toast.LENGTH_LONG).show()
+            val intent = Intent(this, LoginActivity::class.java)
+            intent.putExtra("requestCode", REQUEST_MUST_LOGIN)
+            startActivityForResult(intent, REQUEST_MUST_LOGIN)
+        }
+        else{
+            currentUsername.value= sharedPref.getString("thisUsername","")
+            applicationContext.startForegroundService(Intent(this, SyncService::class.java))
+        }
+    }
+
+    private fun requestPermission(permission: String){
+        registerForActivityResult(ActivityResultContracts.RequestPermission()) { isGranted: Boolean ->
+            if (isGranted) {
+                checkAuth()
+            } else {
+                requestSettings()
+            }
+        }.launch(permission)
+    }
+
+    private fun requestSettings(){
+        AlertDialog.Builder(this)
+            .setTitle("Attention")
+            .setMessage("Storage permission is needed, please allow it in the settings")
+            .setPositiveButton("Ok") { _, _ ->
+                val intent = Intent(Settings.ACTION_APPLICATION_DETAILS_SETTINGS)
+                intent.data = Uri.parse("package:" + applicationContext.packageName)
+                startActivityForResult(intent,REQUEST_PERMISSION)
+            }
+            .setNegativeButton("Cancel") { _, _ ->
+                finishAndRemoveTask()
+                exitProcess(0)
+            }.show()
+    }
 
     // to set toolbar title
     fun setToolBarTitle(title: String) {

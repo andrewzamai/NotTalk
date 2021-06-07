@@ -4,6 +4,7 @@ import android.app.Application
 import android.app.NotificationChannel
 import android.app.NotificationManager
 import android.os.Build
+
 import it.unipd.dei.esp2021.nottalk.util.AppNotificationManager
 
 class NotTalkApplication : Application() {
