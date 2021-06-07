@@ -201,19 +201,64 @@ class AppNotificationManager(private val context: Context){
                     Notification.MessagingStyle(user)
                         .apply {
 
-                            val m = Notification.MessagingStyle.Message(
-                                pendingMessages.text,
-                                pendingMessages.date,
-                                person
-                            )
-                                .apply {
-                                    if (pendingMessages.type == "file") {
-                                        setData(
-                                            pendingMessages.mimeType,
-                                            Uri.parse(pendingMessages.text)
+                           // var m: Notification.MessagingStyle.Message
+
+                            if (pendingMessages.type == "text") {
+
+                               val m = Notification.MessagingStyle.Message(
+                                    pendingMessages.text,
+                                    pendingMessages.date,
+                                    person
+                               )
+
+                                addMessage(m)
+
+                            } else {
+
+                                when (pendingMessages.mimeType!!.split("/")[0]) {
+
+                                    "image" -> {
+                                        val m = Notification.MessagingStyle.Message(
+                                            "\uD83D\uDCF7 Image",
+                                            pendingMessages.date,
+                                            person
                                         )
+                                            .setData(pendingMessages.mimeType,
+                                                Uri.parse(pendingMessages.text))
+
+                                        addMessage(m)
                                     }
+
+                                    "audio" -> {
+                                        val m = Notification.MessagingStyle.Message(
+                                            "\uD83C\uDFA7 Audio",
+                                            pendingMessages.date,
+                                            person
+                                        )
+                                        addMessage(m)
+                                    }
+
+                                    "video" -> {
+                                        val m = Notification.MessagingStyle.Message(
+                                            "\uD83C\uDFA5 Video",
+                                            pendingMessages.date,
+                                            person
+                                        )
+                                        addMessage(m)
+                                    }
+
+                                    else -> {
+                                        val m = Notification.MessagingStyle.Message(
+                                            "\uD83D\uDCCB File",
+                                            pendingMessages.date,
+                                            person
+                                        )
+                                        addMessage(m)
+                                    }
+
                                 }
+
+                            }
 
                             val messagesList = NotTalkRepository.get().getConvoNotLiveData(
                                 pendingMessages.fromUser,
@@ -242,8 +287,6 @@ class AppNotificationManager(private val context: Context){
                                 )
                                 i--
                             }
-
-                            addMessage(m)
 
                         }
 
@@ -323,50 +366,96 @@ class AppNotificationManager(private val context: Context){
                     Notification.MessagingStyle(user)
                         .apply {
 
-                            val m = Notification.MessagingStyle.Message(
-                                pendingMessages.text,
-                                pendingMessages.date,
-                                person
-                            )
-                                .apply {
-                                    if (pendingMessages.type == "file") {
-                                        setData(
-                                            pendingMessages.mimeType,
-                                            Uri.parse(pendingMessages.text)
+                            // var m: Notification.MessagingStyle.Message
+
+                            if (pendingMessages.type == "text") {
+
+                                val m = Notification.MessagingStyle.Message(
+                                    pendingMessages.text,
+                                    pendingMessages.date,
+                                    person
+                                )
+
+                                addMessage(m)
+
+                            } else {
+
+                                when (pendingMessages.mimeType!!.split("/")[0]) {
+
+                                    "image" -> {
+                                        val m = Notification.MessagingStyle.Message(
+                                            "\uD83D\uDCF7 Image",
+                                            pendingMessages.date,
+                                            person
                                         )
+                                            .setData(
+                                                pendingMessages.mimeType,
+                                                Uri.parse(pendingMessages.text)
+                                            )
+
+                                        addMessage(m)
                                     }
+
+                                    "audio" -> {
+                                        val m = Notification.MessagingStyle.Message(
+                                            "\uD83C\uDFA7 Audio",
+                                            pendingMessages.date,
+                                            person
+                                        )
+                                        addMessage(m)
+                                    }
+
+                                    "video" -> {
+                                        val m = Notification.MessagingStyle.Message(
+                                            "\uD83C\uDFA5 Video",
+                                            pendingMessages.date,
+                                            person
+                                        )
+                                        addMessage(m)
+                                    }
+
+                                    else -> {
+                                        val m = Notification.MessagingStyle.Message(
+                                            "\uD83D\uDCCB File",
+                                            pendingMessages.date,
+                                            person
+                                        )
+                                        addMessage(m)
+                                    }
+
                                 }
 
-                            val messagesList = NotTalkRepository.get().getConvoNotLiveData(
-                                pendingMessages.fromUser,
-                                pendingMessages.toUser
-                            )
-                            val lastReadMessage = messagesList?.first() { equals(it.read, true) }
-                            val lastReadMessageIndex = messagesList.indexOf(lastReadMessage)
-                            Log.d("AppNotificationManager", messagesList.toString())
-                            Log.d("AppNotificationManager", lastReadMessage.toString())
-                            Log.d("AppNotificationManager", lastReadMessageIndex.toString())
 
-                            var i = lastReadMessageIndex - 1
-                            while (i > 0) {
-                                val senderPerson =
-                                    if (messagesList[i].fromUser == pendingMessages.fromUser) {
-                                        person
-                                    } else {
-                                        user
-                                    }
-                                addHistoricMessage(
-                                    Notification.MessagingStyle.Message(
-                                        messagesList[i].text,
-                                        messagesList[i].date,
-                                        senderPerson
-                                    )
+                                val messagesList = NotTalkRepository.get().getConvoNotLiveData(
+                                    pendingMessages.fromUser,
+                                    pendingMessages.toUser
                                 )
-                                i--
+                                val lastReadMessage =
+                                    messagesList?.first() { equals(it.read, true) }
+                                val lastReadMessageIndex = messagesList.indexOf(lastReadMessage)
+                                Log.d("AppNotificationManager", messagesList.toString())
+                                Log.d("AppNotificationManager", lastReadMessage.toString())
+                                Log.d("AppNotificationManager", lastReadMessageIndex.toString())
+
+                                var i = lastReadMessageIndex - 1
+                                while (i > 0) {
+                                    val senderPerson =
+                                        if (messagesList[i].fromUser == pendingMessages.fromUser) {
+                                            person
+                                        } else {
+                                            user
+                                        }
+                                    addHistoricMessage(
+                                        Notification.MessagingStyle.Message(
+                                            messagesList[i].text,
+                                            messagesList[i].date,
+                                            senderPerson
+                                        )
+                                    )
+                                    i--
+                                }
+
                             }
-
-                            addMessage(m)
-
                         }
 
                         .setGroupConversation(false)
