@@ -24,26 +24,21 @@ import androidx.core.graphics.drawable.toIcon
 import androidx.core.net.toUri
 import it.unipd.dei.esp2021.nottalk.*
 import it.unipd.dei.esp2021.nottalk.database.Message
-import it.unipd.dei.esp2021.nottalk.database.User
-import it.unipd.dei.esp2021.nottalk.database.UserRelationDao
 import java.lang.IllegalStateException
-import java.util.Objects.compare
 import java.util.Objects.equals
 
-class AppNotificationManager(private val context: Context){
+class AppNotificationManager(private val context: Context) {
 
     companion object {
-
         @SuppressLint("StaticFieldLeak")
         private var INSTANCE: AppNotificationManager? = null
-
-        private const val CHANNEL_NEW_MESSAGES = "notTalk"  //channel for the incoming message
 
         private const val REQUEST_CONTENT = 1
         private const val REQUEST_BUBBLE = 2
 
-        private val senderMes = mutableListOf<String>()
+        private val senderMes = mutableListOf<String>() // list of users for which there is already a notification
 
+        // Singleton pattern class
         fun initialize(context: Context){
             if(INSTANCE ==null) {
                 INSTANCE = AppNotificationManager(context)
@@ -53,7 +48,6 @@ class AppNotificationManager(private val context: Context){
         fun get(): AppNotificationManager {
             return INSTANCE ?: throw IllegalStateException("NotificationManager must be initialized!")
         }
-
     }
 
     private val notificationManager: NotificationManager =
@@ -95,14 +89,10 @@ class AppNotificationManager(private val context: Context){
                         .setAction(Intent.ACTION_VIEW)
                         .setData(contentUri) )
                     .setIcon(IconCompat.createWithBitmap((NotTalkRepository.get().findIconByUsername(pendingMessages.fromUser))))
-                    .setCategories(setOf("com.example.android.bubbles.category.TEXT_SHARE_TARGET"))
+                    .setCategories(setOf("it.unipd.dei.esp2021.nottalk.category.TEXT_SHARE_TARGET"))
                     .build()
             )
         )
-
-
-
-
     }
 
     /*
@@ -115,8 +105,7 @@ class AppNotificationManager(private val context: Context){
                 if(bubblePerm) {
             updateShortcuts(pendingMessages)
 
-            val contentUri =
-                "https://nottalk.esp2021.dei.unipd.it/username/${pendingMessages.fromUser}".toUri() // uri con username primo messaggio
+            val contentUri = "https://nottalk.esp2021.dei.unipd.it/username/${pendingMessages.fromUser}".toUri()
 
             val user = Person.Builder().setName(context.getString(R.string.sender_you)).build()
 
@@ -128,11 +117,8 @@ class AppNotificationManager(private val context: Context){
                 .setIcon(icon)
                 .build()
 
-
-            val chatId = NotTalkRepository.get()
-                .getByUsers(pendingMessages.toUser, pendingMessages.fromUser)?.id
-
-
+            val chatId = NotTalkRepository.get().getByUsers(pendingMessages.toUser, pendingMessages.fromUser)?.id
+                    
             val bubbleIntent = Intent(context, BubbleActivity::class.java).setData(contentUri)
             val bubblePendingIntent = PendingIntent.getActivity(
                 context,
@@ -140,7 +126,8 @@ class AppNotificationManager(private val context: Context){
                 bubbleIntent,
                 PendingIntent.FLAG_UPDATE_CURRENT
             )
-
+                    
+            // bubble metadata         
             val bubbleData = Notification.BubbleMetadata.Builder(bubblePendingIntent, icon)
                 .setIntent(bubblePendingIntent)
                 .setDesiredHeight(context.resources.getDimensionPixelSize(R.dimen.bubble_height))
@@ -149,8 +136,9 @@ class AppNotificationManager(private val context: Context){
                 .setIcon(icon)
                 .build()
 
+            // build messaging style notification        
             val notification = Notification
-                .Builder(context, CHANNEL_NEW_MESSAGES)
+                .Builder(context, NotTalkApplication.MESSAGE_NOTIFICATION_CHANNEL)
                 .setBubbleMetadata(bubbleData)
                 .setContentTitle(pendingMessages.fromUser)
                 .setSmallIcon(android.R.drawable.stat_notify_chat)
@@ -161,6 +149,7 @@ class AppNotificationManager(private val context: Context){
                 .setLocusId(LocusId(NotTalkRepository.get().findByUsername(pendingMessages.fromUser).username))
                 .addPerson(person)
                 .setShowWhen(true)
+                    // to open username detail fragment when clicking on notification
                 .setContentIntent(
                     PendingIntent.getActivity(
                         context,
@@ -172,7 +161,7 @@ class AppNotificationManager(private val context: Context){
                         PendingIntent.FLAG_UPDATE_CURRENT
                     )
                 )
-                //This action permits to reply
+                //This action permits to reply directly from the notification
                 .addAction(
                     Notification.Action
                         .Builder(
@@ -200,9 +189,7 @@ class AppNotificationManager(private val context: Context){
                 .setStyle(
                     Notification.MessagingStyle(user)
                         .apply {
-
-                           // var m: Notification.MessagingStyle.Message
-
+                            // build notification depending on message content type
                             if (pendingMessages.type == "text") {
 
                                val m = Notification.MessagingStyle.Message(
@@ -216,7 +203,7 @@ class AppNotificationManager(private val context: Context){
                             } else {
 
                                 when (pendingMessages.mimeType!!.split("/")[0]) {
-
+                                    // show also image in notification
                                     "image" -> {
                                         val m = Notification.MessagingStyle.Message(
                                             "\uD83D\uDCF7 Image",
@@ -229,6 +216,7 @@ class AppNotificationManager(private val context: Context){
                                         addMessage(m)
                                     }
 
+                                    // shows only "Audio" text and emoji
                                     "audio" -> {
                                         val m = Notification.MessagingStyle.Message(
                                             "\uD83C\uDFA7 Audio",
@@ -238,6 +226,7 @@ class AppNotificationManager(private val context: Context){
                                         addMessage(m)
                                     }
 
+                                    // shows only "Video" text and emoji
                                     "video" -> {
                                         val m = Notification.MessagingStyle.Message(
                                             "\uD83C\uDFA5 Video",
@@ -246,7 +235,7 @@ class AppNotificationManager(private val context: Context){
                                         )
                                         addMessage(m)
                                     }
-
+                                    // shows only "File" text and emoji
                                     else -> {
                                         val m = Notification.MessagingStyle.Message(
                                             "\uD83D\uDCCB File",
@@ -260,6 +249,7 @@ class AppNotificationManager(private val context: Context){
 
                             }
 
+                            // when clicking reply briefly shows last non read messages
                             val messagesList = NotTalkRepository.get().getConvoNotLiveData(
                                 pendingMessages.fromUser,
                                 pendingMessages.toUser
@@ -295,7 +285,7 @@ class AppNotificationManager(private val context: Context){
                 .setWhen(pendingMessages.date)
 
             notificationManager.notify(chatId!!, notification.build())
-        }else{
+        } else {
             updateShortcuts(pendingMessages)
 
             val contentUri =
@@ -316,7 +306,7 @@ class AppNotificationManager(private val context: Context){
                 .getByUsers(pendingMessages.toUser, pendingMessages.fromUser)?.id
 
             val notification = Notification
-                .Builder(context, CHANNEL_NEW_MESSAGES)
+                .Builder(context, NotTalkApplication.MESSAGE_NOTIFICATION_CHANNEL)
                 .setContentTitle(pendingMessages.fromUser)
                 .setSmallIcon(android.R.drawable.stat_notify_chat)
                 .setCategory(Notification.CATEGORY_MESSAGE)
@@ -365,8 +355,6 @@ class AppNotificationManager(private val context: Context){
                 .setStyle(
                     Notification.MessagingStyle(user)
                         .apply {
-
-                            // var m: Notification.MessagingStyle.Message
 
                             if (pendingMessages.type == "text") {
 
@@ -472,7 +460,7 @@ class AppNotificationManager(private val context: Context){
      */
     fun canBubble(user: String): Boolean {
         val channel = notificationManager.getNotificationChannel(
-            CHANNEL_NEW_MESSAGES,
+            NotTalkApplication.MESSAGE_NOTIFICATION_CHANNEL,
             user
         )
         return notificationManager.areBubblesAllowed() || channel?.canBubble() == true

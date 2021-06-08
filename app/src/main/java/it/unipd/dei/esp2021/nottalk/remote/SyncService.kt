@@ -96,7 +96,7 @@ class SyncService : Service() {
                         }
                     }).start()
 
-                    //Notification part
+                    // Send a notification for each new message (if a notification is already existing for a user gets updated showing only last message and number of non read messages)
                     val nm = AppNotificationManager.get()
                     for (i in response.first) {
                         if(nm.canBubble(i.fromUser)) {

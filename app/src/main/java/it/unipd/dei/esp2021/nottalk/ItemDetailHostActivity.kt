@@ -366,14 +366,6 @@ class ItemDetailHostActivity : AppCompatActivity(){
                     )
                     navController.navigate(R.id.show_item_detail, bundle)
 
-                    /*
-                    // delete notification
-                    val chatId = currentUsername.value?.let { NotTalkRepository.get().getByUsers(it, username).id }
-                    if (chatId != null) {
-                        AppNotificationManager.get().updateNotification(chatId)
-                    }
-                    */
-
                 }
 
 
@@ -385,17 +377,7 @@ class ItemDetailHostActivity : AppCompatActivity(){
                 finishAndRemoveTask()
                 exitProcess(0)
             }
-            /*
-            // Invoked when a text is shared through Direct Share.
-            Intent.ACTION_SEND -> {
-                val shortcutId = intent.getStringExtra(Intent.EXTRA_SHORTCUT_ID)
-                val text = intent.getStringExtra(Intent.EXTRA_TEXT)
-                val contact = Contact.CONTACTS.find { it.shortcutId == shortcutId }
-                if (contact != null) {
-                    openChat(contact.id, text)
-                }
-            }
-            */
+
         }
     }
 

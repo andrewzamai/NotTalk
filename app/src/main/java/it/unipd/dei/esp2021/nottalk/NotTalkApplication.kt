@@ -21,7 +21,7 @@ class NotTalkApplication : Application() {
 
         // create a channel
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
-            val name = "DefaultNotificationChannel"
+            val name = "Messages Notification Channel"
             val importance = NotificationManager.IMPORTANCE_HIGH // must be high to have ChatBubbles
             val channel = NotificationChannel(MESSAGE_NOTIFICATION_CHANNEL, name, importance)
             val notificationManager: NotificationManager = getSystemService(NotificationManager::class.java)
@@ -30,7 +30,7 @@ class NotTalkApplication : Application() {
 
         // create a channel for audio/music messages
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
-            val name = "AudioNotificationChannel"
+            val name = "Audio Notification Channel"
             val importance = NotificationManager.IMPORTANCE_HIGH
             val channel = NotificationChannel(AUDIO_NOTIFICATION_CHANNEL, name, importance)
             val notificationManager: NotificationManager = getSystemService(NotificationManager::class.java)
@@ -39,7 +39,7 @@ class NotTalkApplication : Application() {
 
         // create a channel for foreground service
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
-            val name = "ForegroundNotificationChannel"
+            val name = "Foreground Notification Channel"
             val importance = NotificationManager.IMPORTANCE_LOW
             val channel = NotificationChannel(FOREGROUND_CHANNEL, name, importance)
             val notificationManager: NotificationManager = getSystemService(NotificationManager::class.java)

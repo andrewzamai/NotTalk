@@ -28,7 +28,7 @@ class ReplyReceiver : BroadcastReceiver(){
 
             repository.sendTextMessage(thisUser!!, uuid!!, input.toString(), otherUser!!)   //sends the message
 
-            AppNotificationManager.get().updateNotification(chatId) //Aggiorna la notifica
+            AppNotificationManager.get().updateNotification(chatId) // updates Notification deleting it
 
         }
     }

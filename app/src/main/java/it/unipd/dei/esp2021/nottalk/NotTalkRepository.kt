@@ -45,7 +45,7 @@ class NotTalkRepository private constructor(private val context: Context){
         DATABASE_NAME
     )   //.addCallback(ChatDatabaseCallback())
         .fallbackToDestructiveMigration()
-        .allowMainThreadQueries() //TODO: ATTENTION allowed queries on main thread
+        .allowMainThreadQueries() // ATTENTION allowed queries on main thread
         .build()
 
     //This piece of code was used to populate the database at the first launch

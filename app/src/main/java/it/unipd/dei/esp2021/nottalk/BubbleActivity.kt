@@ -19,6 +19,7 @@ class BubbleActivity : AppCompatActivity(R.layout.bubble_activity) {
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
 
+        // retrieves username from intent's data
         val otherUsername = intent.data?.lastPathSegment
 
         Log.d("BUBBLE_TAG", "onCreateBubbleActivity $otherUsername")
@@ -31,6 +32,7 @@ class BubbleActivity : AppCompatActivity(R.layout.bubble_activity) {
                 ItemDetailFragment.ARG_ITEM_ID,
                 otherUsername
             )
+            // false tells the fragment that it is in BubbleActivity Fragment container and not in ItemDetailHostActivity (the first one does not have a toolbar)
             bundle.putBoolean(
                 ItemDetailFragment.ARG_ITEM_IS_IN_HOST_ACTIVITY,
                 false
@@ -40,10 +42,9 @@ class BubbleActivity : AppCompatActivity(R.layout.bubble_activity) {
 
             if (savedInstanceState == null) {
                 supportFragmentManager.commitNow {
-                    replace(R.id.fragment_container_bubble_activity, fragment)  //Put the chat in the bubble
+                    replace(R.id.fragment_container_bubble_activity, fragment)
                 }
             }
-
 
         }
 

@@ -33,11 +33,9 @@ class PlayerService() : Service() {
     private var username: String? = null // username of the audio media sender
     private lateinit var mediaSession: MediaSessionCompat // to let MediaStyle Notification be in media controls must have a valid MediaSessionCompat token
 
-
     override fun onBind(intent: Intent): IBinder? {
         return null // Clients can not bind to this service
     }
-
 
     override fun onStartCommand(intent: Intent, flags: Int, startId: Int): Int {
 
@@ -201,10 +199,7 @@ class PlayerService() : Service() {
                 .setMediaSession(mediaSession.sessionToken))
             .setColor(resources.getColor(R.color.purple_500, resources.newTheme()))
             .build()
-        // TODO: Apps targeting API Build.VERSION_CODES.P or later must request the permission android.Manifest.permission.FOREGROUND_SERVICE in order to use this API.
         startForeground(username.hashCode(), notification) // startForeground MUST notify the user about starting playing
-        //val notificationManager = NotificationManagerCompat.from(applicationContext)
-        //notificationManager.notify(username.hashCode(), notification)
 
     }
 

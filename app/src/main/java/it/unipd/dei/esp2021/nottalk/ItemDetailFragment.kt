@@ -331,36 +331,12 @@ class ItemDetailFragment : Fragment() {
         const val AUDIO_MESSAGE = 6
         const val FILE_MESSAGE = 8
 
-        /*
-        private const val ARG_ID = "id"
-        private const val ARG_FOREGROUND = "foreground"
-        private const val ARG_PREPOPULATE_TEXT = "prepopulate_text"
-
-
-
-        fun newInstanceText(id: Int, foreground: Boolean, prepopulateText: String? = null) =
-            ItemDetailFragment().apply {
-                arguments = Bundle().apply {
-                    putInt(ARG_ID, id)
-                    putBoolean(ARG_FOREGROUND, foreground)
-                    putString(ARG_PREPOPULATE_TEXT, prepopulateText)
-                }
-            }
-
-        private const val ARG_PHOTO = "photo"
-
-        fun newInstancePhoto(photo: Uri) = ItemDetailFragment().apply {
-            arguments = Bundle().apply {
-                putParcelable(ARG_PHOTO, photo)
-            }
-        }
-
-         */
     }
 
 
 
 /*------------------------------------------------------------------ inner classes MessageHolder and ChatAdapter for ChatRecyclerView --------------------------------------------------------*/
+
 
     // Depending on message type (text, image, audio, video, file) a different Holder is instantiated
 

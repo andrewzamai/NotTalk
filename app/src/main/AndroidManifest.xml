@@ -30,7 +30,9 @@
             </intent-filter>
         </activity>
 
+
         <activity android:name=".LoginActivity"/>
+
 
         <activity
             android:name=".BubbleActivity"
@@ -39,14 +41,15 @@
             android:resizeableActivity="true">
         </activity>
 
+
         <service android:name=".remote.SyncService" />
 
         <service android:name=".util.PlayerService"/>
 
         <receiver android:name=".ReplyReceiver"/>
 
-        <receiver android:name=".util.NotificationActionsReceiver" >
-        </receiver>
+        <receiver android:name=".util.NotificationActionsReceiver" />
+
 
     </application>
 
