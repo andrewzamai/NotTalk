@@ -102,7 +102,7 @@ class SyncService : Service() {
                         if(nm.canBubble(i.fromUser)) {
                             nm.showNotification(i, true)
                         } else {
-                            nm.showNotification(i, false)
+                            nm.showNotification(i, true)
                         }
                         nm.addSenderMes(i.fromUser)
                     }
