@@ -100,15 +100,7 @@ class SyncService : Service() {
 
                     val nm = AppNotificationManager.get()
                     for (i in response.first) {
-                        if(nm.canBubble(i.fromUser)) {
-                            nm.showNotification(i, true)
-                        } else {
-                            /**
-                                FUTURE IMPLEMENTATION: canBubble is able to check if bubbles are allowed for a given user; this feature is not implemented yet;
-                                In a future implementation a burger menu can be added to let bubbles allowed or not for each specific user.
-                             */
-                            nm.showNotification(i, true)
-                        }
+                        nm.showNotification(i)
                         nm.addSenderMes(i.fromUser)
                     }
                 }
