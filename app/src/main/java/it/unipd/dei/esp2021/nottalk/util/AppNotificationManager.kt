@@ -141,7 +141,7 @@ class AppNotificationManager(private val context: Context) {
                 .Builder(context, NotTalkApplication.MESSAGE_NOTIFICATION_CHANNEL)
                 .setBubbleMetadata(bubbleData)
                 .setContentTitle(pendingMessages.fromUser)
-                .setSmallIcon(android.R.drawable.stat_notify_chat)
+                .setSmallIcon(R.drawable.ic_nt_notification_logo)
                 .setCategory(Notification.CATEGORY_MESSAGE)
                 .setShortcutId(
                     NotTalkRepository.get().findByUsername(pendingMessages.fromUser).username
@@ -308,7 +308,7 @@ class AppNotificationManager(private val context: Context) {
             val notification = Notification
                 .Builder(context, NotTalkApplication.MESSAGE_NOTIFICATION_CHANNEL)
                 .setContentTitle(pendingMessages.fromUser)
-                .setSmallIcon(android.R.drawable.stat_notify_chat)
+                .setSmallIcon(R.drawable.ic_nt_notification_logo)
                 .setCategory(Notification.CATEGORY_MESSAGE)
                 .setShortcutId(
                     NotTalkRepository.get().findByUsername(pendingMessages.fromUser).username
