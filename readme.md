@@ -1,3 +1,1 @@
-NotTalk
-
-Prova push -Alessandro
+NotTalk is an Android 11 messaging app that utilizes the Primary/Detail Flow template with ItemListFragment and ItemDetailFragment. It offers real-time notifications for messages received, manages conversations with various media types, and supports multimedia sharing. The app uses Room Database for local storage, ensuring data availability online and offline. Implementing ViewModel and LiveData components optimizes data handling and updates. NotTalk focuses on Android 11 devices, foregoing backward compatibility for a potential Play Store release. Overall, it provides a user-friendly and efficient messaging experience with proper architectural organization.
